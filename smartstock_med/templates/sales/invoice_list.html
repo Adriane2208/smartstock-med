@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Factures - SmartStock Med{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-custom navbar-expand-lg sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard/">
+            <img src="{% static 'images/logo.png' %}" alt="SmartStock Med" onerror="this.src='https://via.placeholder.com/40x40?text=SSM'">
+            SmartStock Med
+        </a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3">
+                <i class="fas fa-user-circle"></i> {{ request.user.username }}
+            </span>
+            <a href="/logout/" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2">
+            <div class="sidebar animated">
+                <a href="/dashboard/" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="/produits/" class="nav-link">
+                    <i class="fas fa-boxes"></i> Produits
+                </a>
+                <a href="/factures/" class="nav-link active">
+                    <i class="fas fa-file-invoice"></i> Factures
+                </a>
+                <a href="/livraisons/" class="nav-link">
+                    <i class="fas fa-truck"></i> Livraisons
+                </a>
+            </div>
+        </div>
+        
+        <!-- Contenu principal -->
+        <div class="col-md-10">
+            <div class="animated">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 style="color: var(--bleu-nuit);">
+                        <i class="fas fa-file-invoice"></i> Gestion des Factures
+                    </h2>
+                    <button class="btn btn-custom-primary" data-bs-toggle="modal" data-bs-target="#invoiceModal">
+                        <i class="fas fa-plus-circle"></i> Nouvelle Facture
+                    </button>
+                </div>
+                
+                <div class="card-custom">
+                    <div class="card-header">
+                        <i class="fas fa-list"></i> Liste des factures
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>N° Facture</th>
+                                        <th>Date</th>
+                                        <th>Client</th>
+                                        <th>Total (CFA)</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoicesTableBody">
+                                    <tr><td colspan="5" class="text-center">Chargement...</td</tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nouvelle Facture -->
+<div class="modal fade" id="invoiceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--bleu-nuit); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle"></i> Nouvelle Facture
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nom du client *</label>
+                        <input type="text" id="customer_name" class="form-control" placeholder="Entrez le nom du client">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="customer_email" class="form-control" placeholder="client@email.com">
+                    </div>
+                </div>
+                
+                <hr>
+                <h6><i class="fas fa-cart-shopping"></i> Articles commandés</h6>
+                <div id="itemsContainer"></div>
+                
+                <button type="button" class="btn btn-custom-secondary btn-sm mt-2" onclick="addItem()">
+                    <i class="fas fa-plus-circle"></i> Ajouter un article
+                </button>
+                
+                <hr>
+                <div class="text-end">
+                    <h4>Total TTC: <span id="totalAmount" class="text-danger fw-bold">0</span> CFA</h4>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-custom-primary" onclick="createFacture()">Créer la facture</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let produits = [];
+
+function getCsrfToken() {
+    let token = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === 'csrftoken=') {
+                token = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return token;
+}
+
+async function chargerProduits() {
+    try {
+        const response = await fetch('/api/products/products/');
+        produits = await response.json();
+        console.log('Produits chargés:', produits.length);
+    } catch(error) {
+        console.error('Erreur:', error);
+    }
+}
+
+function addItem() {
+    if (produits.length === 0) {
+        alert('Chargement des produits en cours...');
+        return;
+    }
+    
+    const container = document.getElementById('itemsContainer');
+    const rowId = Date.now();
+    
+    const div = document.createElement('div');
+    div.className = 'row mb-2';
+    div.id = `ligne-${rowId}`;
+    div.innerHTML = `
+        <div class="col-5">
+            <select class="form-control" id="produit-${rowId}" onchange="mettreAJourPrix(${rowId})">
+                <option value="">-- Sélectionner un produit --</option>
+                ${produits.map(p => `<option value="${p.id}" data-prix="${p.price}">${p.name} - ${parseFloat(p.price).toLocaleString()} CFA (Stock: ${p.quantity})</option>`).join('')}
+            </select>
+        </div>
+        <div class="col-3">
+            <input type="number" class="form-control" id="quantite-${rowId}" placeholder="Quantité" onchange="calculerTotal()">
+        </div>
+        <div class="col-3">
+            <input type="text" class="form-control" id="prix-${rowId}" readonly placeholder="Prix unitaire">
+        </div>
+        <div class="col-1">
+            <button type="button" class="btn btn-danger btn-sm" onclick="supprimerLigne(${rowId})">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function mettreAJourPrix(rowId) {
+    const select = document.getElementById(`produit-${rowId}`);
+    const prixField = document.getElementById(`prix-${rowId}`);
+    const option = select.options[select.selectedIndex];
+    const prix = option.dataset.prix;
+    prixField.value = prix ? parseFloat(prix).toLocaleString() + ' CFA' : '';
+    calculerTotal();
+}
+
+function supprimerLigne(rowId) {
+    const ligne = document.getElementById(`ligne-${rowId}`);
+    if (ligne) ligne.remove();
+    calculerTotal();
+}
+
+function calculerTotal() {
+    let total = 0;
+    const lignes = document.querySelectorAll('#itemsContainer .row');
+    
+    lignes.forEach(ligne => {
+        const select = ligne.querySelector('select');
+        const quantite = ligne.querySelector('input[type="number"]');
+        const option = select.options[select.selectedIndex];
+        const prix = parseFloat(option?.dataset?.prix || 0);
+        const qte = parseInt(quantite?.value || 0);
+        
+        if (prix && qte) {
+            total += prix * qte;
+        }
+    });
+    
+    document.getElementById('totalAmount').innerHTML = total.toLocaleString();
+}
+
+async function createFacture() {
+    const client = document.getElementById('customer_name').value;
+    if (!client) {
+        alert('Veuillez entrer le nom du client');
+        return;
+    }
+    
+    const articles = [];
+    const lignes = document.querySelectorAll('#itemsContainer .row');
+    
+    for (const ligne of lignes) {
+        const select = ligne.querySelector('select');
+        const quantite = ligne.querySelector('input[type="number"]');
+        const produitId = select.value;
+        const qte = parseInt(quantite?.value || 0);
+        
+        if (produitId && qte > 0) {
+            const produit = produits.find(p => p.id == parseInt(produitId));
+            if (produit) {
+                articles.push({
+                    product: parseInt(produitId),
+                    quantity: qte,
+                    price: parseFloat(produit.price)
+                });
+            }
+        }
+    }
+    
+    if (articles.length === 0) {
+        alert('Ajoutez au moins un article');
+        return;
+    }
+    
+    const data = {
+        customer_name: client,
+        customer_email: document.getElementById('customer_email').value || '',
+        items: articles
+    };
+    
+    try {
+        const response = await fetch('/api/sales/invoices/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            alert('✅ Facture créée avec succès !');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('invoiceModal'));
+            modal.hide();
+            chargerFactures();
+            document.getElementById('customer_name').value = '';
+            document.getElementById('customer_email').value = '';
+            document.getElementById('itemsContainer').innerHTML = '';
+        } else {
+            const erreur = await response.json();
+            alert('Erreur: ' + JSON.stringify(erreur));
+        }
+    } catch(error) {
+        alert('Erreur: ' + error.message);
+    }
+}
+
+async function chargerFactures() {
+    try {
+        const response = await fetch('/api/sales/invoices/');
+        const factures = await response.json();
+        const tbody = document.getElementById('invoicesTableBody');
+        tbody.innerHTML = '';
+        
+        if (factures.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Aucune facture</td</td>';
+            return;
+        }
+        
+        factures.forEach(facture => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${facture.invoice_number || facture.id}</td>
+                    <td>${new Date(facture.created_at).toLocaleDateString()}</td>
+                    <td>${facture.customer_name || '-'}</td>
+                    <td>${(facture.total || 0).toLocaleString()}</td>
+                    <td>
+                        <a href="/api/sales/invoices/${facture.id}/pdf/" target="_blank" class="btn btn-sm btn-info me-1">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </a>
+                        <button class="btn btn-sm btn-danger" onclick="supprimerFacture(${facture.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch(error) {
+        console.error('Erreur:', error);
+    }
+}
+
+async function supprimerFacture(id) {
+    if (confirm('Supprimer cette facture ?')) {
+        try {
+            await fetch(`/api/sales/invoices/${id}/`, {
+                method: 'DELETE',
+                headers: {'X-CSRFToken': getCsrfToken()}
+            });
+            chargerFactures();
+        } catch(error) {
+            alert('Erreur lors de la suppression');
+        }
+    }
+}
+
+document.getElementById('invoiceModal').addEventListener('show.bs.modal', function() {
+    document.getElementById('customer_name').value = '';
+    document.getElementById('customer_email').value = '';
+    document.getElementById('itemsContainer').innerHTML = '';
+    addItem();
+});
+
+async function init() {
+    await chargerProduits();
+    await chargerFactures();
+}
+
+init();
+</script>
+{% endblock %}

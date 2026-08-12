@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Commandes client - SmartStock Med{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-custom navbar-expand-lg sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard/">
+            <img src="{% static 'images/logo.png' %}" alt="SmartStock Med" onerror="this.src='https://via.placeholder.com/40x40?text=SSM'">
+            SmartStock Med
+        </a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3">
+                <i class="fas fa-user-circle"></i> {{ request.user.username }}
+            </span>
+            <a href="/logout/" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2">
+            <div class="sidebar animated">
+                <a href="/dashboard/" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="/produits/" class="nav-link">
+                    <i class="fas fa-boxes"></i> Produits
+                </a>
+                <a href="/factures/" class="nav-link">
+                    <i class="fas fa-file-invoice"></i> Factures
+                </a>
+                <a href="/livraisons/" class="nav-link">
+                    <i class="fas fa-truck"></i> Livraisons
+                </a>
+                <a href="/commandes-client/" class="nav-link active">
+                    <i class="fas fa-shopping-cart"></i> Commandes client
+                </a>
+            </div>
+        </div>
+        
+        <!-- Contenu principal -->
+        <div class="col-md-10">
+            <div class="animated">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 style="color: var(--bleu-nuit);">
+                        <i class="fas fa-shopping-cart"></i> Commandes des clients
+                    </h2>
+                </div>
+                
+                <div class="card-custom">
+                    <div class="card-header">
+                        <i class="fas fa-list"></i> Liste des commandes
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Client</th>
+                                        <th>Téléphone</th>
+                                        <th>Adresse</th>
+                                        <th>Total</th>
+                                        <th>Statut</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                    <tr>
+                                        <td><strong>#{{ order.id }}</strong></td>
+                                        <td>
+                                            {{ order.customer_name }}<br>
+                                            <small class="text-muted">{{ order.customer_email }}</small>
+                                        </td>
+                                        <td>{{ order.customer_phone }}</td>
+                                        <td>{{ order.customer_address|truncatechars:30 }}</td>
+                                        <td><strong>{{ order.total|floatformat:0 }} CFA</strong></td>
+                                        <td>
+                                            {% if order.status == 'pending' %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-clock"></i> En attente
+                                                </span>
+                                            {% elif order.status == 'confirmed' %}
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-check-circle"></i> Confirmée
+                                                </span>
+                                            {% elif order.status == 'preparing' %}
+                                                <span class="badge bg-primary">
+                                                    <i class="fas fa-box"></i> En préparation
+                                                </span>
+                                            {% elif order.status == 'shipped' %}
+                                                <span class="badge bg-primary">
+                                                    <i class="fas fa-truck"></i> Expédiée
+                                                </span>
+                                            {% elif order.status == 'delivered' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-double"></i> Livrée
+                                                </span>
+                                            {% elif order.status == 'cancelled' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times-circle"></i> Annulée
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#orderModal{{ order.id }}">
+                                                <i class="fas fa-eye"></i> Détails
+                                            </button>
+                                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#statusModal{{ order.id }}">
+                                                <i class="fas fa-edit"></i> Statut
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Modal Détails -->
+                                    <div class="modal fade" id="orderModal{{ order.id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header" style="background: var(--bleu-nuit); color: white;">
+                                                    <h5 class="modal-title">Commande #{{ order.id }} - {{ order.customer_name }}</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <h6>Informations client</h6>
+                                                            <p>
+                                                                <strong>Nom:</strong> {{ order.customer_name }}<br>
+                                                                <strong>Email:</strong> {{ order.customer_email }}<br>
+                                                                <strong>Téléphone:</strong> {{ order.customer_phone }}<br>
+                                                                <strong>Adresse:</strong> {{ order.customer_address }}
+                                                            </p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h6>Informations commande</h6>
+                                                            <p>
+                                                                <strong>Date:</strong> {{ order.created_at|date:"d/m/Y H:i" }}<br>
+                                                                <strong>Statut:</strong> 
+                                                                {% if order.status == 'pending' %}⏳ En attente
+                                                                {% elif order.status == 'confirmed' %}✓ Confirmée
+                                                                {% elif order.status == 'preparing' %}📦 En préparation
+                                                                {% elif order.status == 'shipped' %}🚚 Expédiée
+                                                                {% elif order.status == 'delivered' %}✅ Livrée
+                                                                {% elif order.status == 'cancelled' %}❌ Annulée
+                                                                {% endif %}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <hr>
+                                                    <h6>Articles commandés</h6>
+                                                    <table class="table table-sm">
+                                                        <thead>
+                                                            <tr><th>Produit</th><th>Quantité</th><th>Prix unitaire</th><th>Total</th></tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for item in order.items.all %}
+                                                            <tr>
+                                                                <td>{{ item.product.name }}</td>
+                                                                <td>{{ item.quantity }}</td>
+                                                                <td>{{ item.price|floatformat:0 }} CFA</td>
+                                                                <td>{{ item.get_total|floatformat:0 }} CFA</td>
+                                                            </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                    <hr>
+                                                    <h5 class="text-end">Total: {{ order.total|floatformat:0 }} CFA</h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Modal Changement Statut -->
+                                    <div class="modal fade" id="statusModal{{ order.id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header" style="background: var(--bleu-nuit); color: white;">
+                                                    <h5 class="modal-title">Changer le statut - Commande #{{ order.id }}</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <form method="post" action="{% url 'core:update_order_status' order.id %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-body">
+                                                        <label>Nouveau statut</label>
+                                                        <select name="status" class="form-control">
+                                                            <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>⏳ En attente</option>
+                                                            <option value="confirmed" {% if order.status == 'confirmed' %}selected{% endif %}>✓ Confirmée</option>
+                                                            <option value="preparing" {% if order.status == 'preparing' %}selected{% endif %}>📦 En préparation</option>
+                                                            <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>🚚 Expédiée</option>
+                                                            <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>✅ Livrée</option>
+                                                            <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>❌ Annulée</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                        <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="8" class="text-center">Aucune commande pour le moment</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Livraisons - SmartStock Med{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-custom navbar-expand-lg sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard/">
+            <img src="{% static 'images/logo.png' %}" alt="SmartStock Med" onerror="this.src='https://via.placeholder.com/40x40?text=SSM'">
+            SmartStock Med
+        </a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3">
+                <i class="fas fa-user-circle"></i> {{ request.user.username }}
+            </span>
+            <a href="/logout/" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2">
+            <div class="sidebar animated">
+                <a href="/dashboard/" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="/produits/" class="nav-link">
+                    <i class="fas fa-boxes"></i> Produits
+                </a>
+                <a href="/factures/" class="nav-link">
+                    <i class="fas fa-file-invoice"></i> Factures
+                </a>
+                <a href="/livraisons/" class="nav-link active">
+                    <i class="fas fa-truck"></i> Livraisons
+                </a>
+            </div>
+        </div>
+        
+        <!-- Contenu principal -->
+        <div class="col-md-10">
+            <div class="animated">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 style="color: var(--bleu-nuit);">
+                        <i class="fas fa-truck"></i> Gestion des Livraisons
+                    </h2>
+                    <button class="btn btn-custom-primary" data-bs-toggle="modal" data-bs-target="#deliveryModal" onclick="resetDeliveryForm()">
+                        <i class="fas fa-plus-circle"></i> Nouvelle Livraison
+                    </button>
+                </div>
+                
+                <div class="card-custom">
+                    <div class="card-header">
+                        <i class="fas fa-list"></i> Liste des livraisons
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Facture N°</th>
+                                        <th>Client</th>
+                                        <th>Adresse</th>
+                                        <th>Statut</th>
+                                        <th>Date livraison</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="deliveriesTableBody">
+                                    <tr><td colspan="7" class="text-center">Chargement...</td</tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nouvelle Livraison -->
+<div class="modal fade" id="deliveryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--bleu-nuit); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-truck"></i> Nouvelle Livraison
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="deliveryForm">
+                    <div class="mb-3">
+                        <label class="form-label">Facture associée</label>
+                        <select id="invoice_id" class="form-control" required>
+                            <option value="">-- Sélectionner une facture --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Adresse de livraison</label>
+                        <textarea id="address" class="form-control" rows="2" placeholder="Adresse complète" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Livreur</label>
+                        <input type="text" id="delivery_person" class="form-control" placeholder="Nom du livreur" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Statut</label>
+                        <select id="status" class="form-control">
+                            <option value="pending">En attente</option>
+                            <option value="preparing">En préparation</option>
+                            <option value="in_transit">En cours</option>
+                            <option value="delivered">Livrée</option>
+                            <option value="failed">Échouée</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-custom-primary" onclick="saveDelivery()">Créer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Modifier Statut -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--bleu-nuit); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit"></i> Modifier le statut
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit_delivery_id">
+                <div class="mb-3">
+                    <label class="form-label">Nouveau statut</label>
+                    <select id="edit_status" class="form-control">
+                        <option value="pending">En attente</option>
+                        <option value="preparing">En préparation</option>
+                        <option value="in_transit">En cours</option>
+                        <option value="delivered">Livrée</option>
+                        <option value="failed">Échouée</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-custom-primary" onclick="updateStatus()">Mettre à jour</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function getCsrfToken() {
+    let token = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === 'csrftoken=') {
+                token = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return token;
+}
+
+function getStatusBadge(status) {
+    const statusMap = {
+        'pending': '<span class="badge bg-warning"><i class="fas fa-clock"></i> En attente</span>',
+        'preparing': '<span class="badge bg-info"><i class="fas fa-box"></i> En préparation</span>',
+        'in_transit': '<span class="badge bg-primary"><i class="fas fa-truck"></i> En cours</span>',
+        'delivered': '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Livrée</span>',
+        'failed': '<span class="badge bg-danger"><i class="fas fa-times-circle"></i> Échouée</span>'
+    };
+    return statusMap[status] || '<span class="badge bg-secondary">Inconnu</span>';
+}
+
+async function loadInvoices() {
+    try {
+        const response = await fetch('/api/sales/invoices/');
+        const invoices = await response.json();
+        const select = document.getElementById('invoice_id');
+        select.innerHTML = '<option value="">-- Sélectionner une facture --</option>';
+        
+        invoices.forEach(invoice => {
+            select.innerHTML += `<option value="${invoice.id}">${invoice.invoice_number} - ${invoice.customer_name} - ${parseFloat(invoice.total).toLocaleString()} CFA</option>`;
+        });
+    } catch(error) {
+        console.error('Erreur:', error);
+    }
+}
+
+async function loadDeliveries() {
+    try {
+        const response = await fetch('/api/deliveries/deliveries/');
+        const deliveries = await response.json();
+        const tbody = document.getElementById('deliveriesTableBody');
+        tbody.innerHTML = '';
+        
+        if (deliveries.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Aucune livraison</td</tr>';
+            return;
+        }
+        
+        for (const delivery of deliveries) {
+            // Récupérer la facture associée
+            let invoiceInfo = '';
+            try {
+                const invoiceResp = await fetch(`/api/sales/invoices/${delivery.invoice}/`);
+                const invoice = await invoiceResp.json();
+                invoiceInfo = `${invoice.invoice_number} - ${invoice.customer_name}`;
+            } catch(e) {
+                invoiceInfo = `Facture #${delivery.invoice}`;
+            }
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td>${delivery.id}</td>
+                    <td>${invoiceInfo}</td>
+                    <td>${delivery.customer_name || '-'}</td>
+                    <td>${delivery.address || '-'}</td>
+                    <td>${getStatusBadge(delivery.status)}</td>
+                    <td>${delivery.delivery_date ? new Date(delivery.delivery_date).toLocaleDateString() : '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" onclick="editStatus(${delivery.id}, '${delivery.status}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteDelivery(${delivery.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                     </td>
+                </tr>
+            `;
+        }
+    } catch(error) {
+        console.error('Erreur:', error);
+        document.getElementById('deliveriesTableBody').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Erreur de chargement</td</tr>';
+    }
+}
+
+function resetDeliveryForm() {
+    document.getElementById('deliveryForm').reset();
+    document.getElementById('address').value = '';
+    document.getElementById('delivery_person').value = '';
+    document.getElementById('status').value = 'pending';
+}
+
+async function saveDelivery() {
+    const invoiceId = document.getElementById('invoice_id').value;
+    const address = document.getElementById('address').value;
+    const deliveryPerson = document.getElementById('delivery_person').value;
+    const status = document.getElementById('status').value;
+    
+    if (!invoiceId) {
+        alert('Sélectionnez une facture');
+        return;
+    }
+    
+    if (!address) {
+        alert('Entrez l\'adresse de livraison');
+        return;
+    }
+    
+    const data = {
+        invoice: parseInt(invoiceId),
+        address: address,
+        delivery_person: deliveryPerson,
+        status: status,
+        customer_name: document.getElementById('customer_name')?.value || ''
+    };
+    
+    try {
+        const response = await fetch('/api/deliveries/deliveries/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            alert('✅ Livraison créée !');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deliveryModal'));
+            modal.hide();
+            loadDeliveries();
+        } else {
+            const error = await response.json();
+            alert('Erreur: ' + JSON.stringify(error));
+        }
+    } catch(error) {
+        alert('Erreur: ' + error.message);
+    }
+}
+
+function editStatus(id, currentStatus) {
+    document.getElementById('edit_delivery_id').value = id;
+    document.getElementById('edit_status').value = currentStatus;
+    const modal = new bootstrap.Modal(document.getElementById('statusModal'));
+    modal.show();
+}
+
+async function updateStatus() {
+    const id = document.getElementById('edit_delivery_id').value;
+    const newStatus = document.getElementById('edit_status').value;
+    
+    try {
+        const response = await fetch(`/api/deliveries/deliveries/${id}/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        if (response.ok) {
+            alert('✅ Statut mis à jour !');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('statusModal'));
+            modal.hide();
+            loadDeliveries();
+        } else {
+            alert('Erreur lors de la mise à jour');
+        }
+    } catch(error) {
+        alert('Erreur: ' + error.message);
+    }
+}
+
+async function deleteDelivery(id) {
+    if (confirm('Supprimer cette livraison ?')) {
+        try {
+            await fetch(`/api/deliveries/deliveries/${id}/`, {
+                method: 'DELETE',
+                headers: {'X-CSRFToken': getCsrfToken()}
+            });
+            loadDeliveries();
+        } catch(error) {
+            alert('Erreur lors de la suppression');
+        }
+    }
+}
+
+// Initialisation
+async function init() {
+    await loadInvoices();
+    await loadDeliveries();
+}
+
+init();
+</script>
+{% endblock %}

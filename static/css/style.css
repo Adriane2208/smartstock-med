@@ -1,0 +1,218 @@
+/* static/css/style.css */
+:root {
+    --rouge: #dc3545;
+    --bleu-nuit: #1a2a4f;
+    --blanc: #ffffff;
+    --gris-clair: #f8f9fa;
+    --gris-fonce: #343a40;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--gris-clair);
+}
+
+/* Navbar */
+.navbar-custom {
+    background: linear-gradient(135deg, var(--bleu-nuit) 0%, #0f1a30 100%);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    padding: 1rem 0;
+}
+
+.navbar-custom .navbar-brand {
+    color: var(--blanc);
+    font-weight: bold;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navbar-custom .navbar-brand img {
+    height: 40px;
+    width: auto;
+}
+
+.navbar-custom .nav-link {
+    color: var(--blanc);
+    transition: all 0.3s ease;
+}
+
+.navbar-custom .nav-link:hover {
+    color: var(--rouge);
+    transform: translateY(-2px);
+}
+
+/* Sidebar */
+.sidebar {
+    background: linear-gradient(180deg, var(--blanc) 0%, var(--gris-clair) 100%);
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    padding: 1rem 0;
+    margin-top: 20px;
+}
+
+.sidebar .nav-link {
+    color: var(--bleu-nuit);
+    padding: 12px 20px;
+    margin: 5px 10px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar .nav-link i {
+    font-size: 1.2rem;
+    width: 25px;
+}
+
+.sidebar .nav-link:hover {
+    background-color: var(--bleu-nuit);
+    color: var(--blanc);
+    transform: translateX(5px);
+}
+
+.sidebar .nav-link.active {
+    background: linear-gradient(135deg, var(--rouge) 0%, #b02a37 100%);
+    color: var(--blanc);
+    box-shadow: 0 4px 10px rgba(220,53,69,0.3);
+}
+
+/* Cartes */
+.card-custom {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    background: var(--blanc);
+    overflow: hidden;
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.card-custom .card-header {
+    background: linear-gradient(135deg, var(--bleu-nuit) 0%, #0f1a30 100%);
+    color: var(--blanc);
+    border: none;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.card-custom .card-header i {
+    margin-right: 10px;
+}
+
+/* Statistiques */
+.stat-card {
+    background: var(--blanc);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    cursor: pointer;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.stat-card .stat-icon {
+    font-size: 2.5rem;
+    color: var(--rouge);
+    margin-bottom: 1rem;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--bleu-nuit);
+}
+
+.stat-card .stat-label {
+    color: var(--gris-fonce);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Boutons */
+.btn-custom-primary {
+    background: linear-gradient(135deg, var(--rouge) 0%, #b02a37 100%);
+    border: none;
+    color: var(--blanc);
+    padding: 10px 25px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.btn-custom-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(220,53,69,0.4);
+    color: var(--blanc);
+}
+
+.btn-custom-secondary {
+    background: var(--bleu-nuit);
+    border: none;
+    color: var(--blanc);
+    padding: 10px 25px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.btn-custom-secondary:hover {
+    transform: scale(1.05);
+    background: #0f1a30;
+    color: var(--blanc);
+}
+
+/* Tables */
+.table-custom {
+    background: var(--blanc);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.table-custom thead {
+    background: linear-gradient(135deg, var(--bleu-nuit) 0%, #0f1a30 100%);
+    color: var(--blanc);
+}
+
+.table-custom tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table-custom tbody tr:hover {
+    background-color: rgba(220,53,69,0.05);
+    transform: scale(1.01);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animated {
+    animation: fadeIn 0.5s ease-out;
+}

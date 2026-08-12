@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-custom navbar-expand-lg sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard/">
+            <img src="{% static 'images/logo.png' %}" alt="SmartStock Med" onerror="this.src='https://via.placeholder.com/40x40?text=SSM'">
+            SmartStock Med
+        </a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3">
+                <i class="fas fa-user-circle"></i> {{ request.user.username }}
+            </span>
+            <a href="/logout/" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2">
+            <div class="sidebar animated">
+                <a href="/dashboard/" class="nav-link active">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="/produits/" class="nav-link">
+                    <i class="fas fa-boxes"></i> Produits
+                </a>
+                <a href="/factures/" class="nav-link">
+                    <i class="fas fa-file-invoice"></i> Factures
+                </a>
+                <a href="/livraisons/" class="nav-link">
+                    <i class="fas fa-truck"></i> Livraisons
+
+                </a>
+                <a href="/commandes-client/" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i> Commandes client
+                </a>
+            </div>
+        </div>
+        
+        <!-- Contenu principal -->
+        <div class="col-md-10">
+            <div class="animated">
+                <h2 class="mb-4" style="color: var(--bleu-nuit);">
+                    <i class="fas fa-chart-line"></i> Tableau de bord
+                </h2>
+                
+                <!-- Cartes statistiques -->
+                <div class="row" id="statsContainer">
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-value" id="ca">---</div>
+                            <div class="stat-label">Chiffre d'affaires (CFA)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-boxes"></i>
+                            </div>
+                            <div class="stat-value" id="stockCount">---</div>
+                            <div class="stat-label">Produits en stock</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                            <div class="stat-value" id="invoiceCount">---</div>
+                            <div class="stat-label">Factures</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="stat-value" id="deliveryCount">---</div>
+                            <div class="stat-label">Livraisons en cours</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Graphiques et alertes -->
+                <div class="row mt-4">
+                    <div class="col-md-6 mb-4">
+                        <div class="card-custom">
+                            <div class="card-header">
+                                <i class="fas fa-chart-bar"></i> Produits les plus vendus
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush" id="topProducts">
+                                    <li class="list-group-item">Chargement...</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card-custom">
+                            <div class="card-header">
+                                <i class="fas fa-exclamation-triangle"></i> Alertes stock faible
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush" id="lowStock">
+                                    <li class="list-group-item">Chargement...</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function getToken() {
+    return localStorage.getItem('access_token');
+}
+
+async function loadDashboard() {
+    try {
+        // Récupérer les produits
+        const productsResp = await fetch('/api/products/products/');
+        const products = await productsResp.json();
+        
+        // Récupérer les factures
+        const invoicesResp = await fetch('/api/sales/invoices/');
+        const invoices = await invoicesResp.json();
+        
+        // Mettre à jour les stats
+        document.getElementById('stockCount').innerHTML = products.length;
+        document.getElementById('invoiceCount').innerHTML = invoices.length;
+        
+        let ca = 0;
+        invoices.forEach(inv => {
+            ca += parseFloat(inv.total || 0);
+        });
+        document.getElementById('ca').innerHTML = ca.toLocaleString();
+        
+        // Top produits (simulé)
+        const topList = document.getElementById('topProducts');
+        topList.innerHTML = '';
+        if (products.length > 0) {
+            products.slice(0, 5).forEach(product => {
+                topList.innerHTML += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <i class="fas fa-capsules"></i> ${product.name}
+                        <span class="badge bg-danger rounded-pill">${product.quantity || 0} vendus</span>
+                    </li>
+                `;
+            });
+        } else {
+            topList.innerHTML = '<li class="list-group-item text-muted">Aucun produit</li>';
+        }
+        
+        // Alertes stock faible
+        const stockList = document.getElementById('lowStock');
+        stockList.innerHTML = '';
+        const lowStockItems = products.filter(p => (p.quantity || 0) < 10);
+        if (lowStockItems.length > 0) {
+            lowStockItems.forEach(product => {
+                stockList.innerHTML += `
+                    <li class="list-group-item list-group-item-warning">
+                        <i class="fas fa-exclamation-triangle text-danger"></i> 
+                        ${product.name}: ${product.quantity || 0} unités restantes
+                    </li>
+                `;
+            });
+        } else {
+            stockList.innerHTML = '<li class="list-group-item text-success"><i class="fas fa-check-circle"></i> Tous les stocks sont suffisants</li>';
+        }
+        
+    } catch(error) {
+        console.error('Erreur:', error);
+    }
+}
+
+loadDashboard();
+</script>
+{% endblock %}

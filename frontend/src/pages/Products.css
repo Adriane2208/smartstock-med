@@ -1,0 +1,329 @@
+/* Products.css */
+.products-container {
+    padding: 0.5rem 0;
+}
+
+.products-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+}
+
+.products-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.products-title {
+    color: #1a2a4f;
+    font-weight: 800;
+    font-size: 1.8rem;
+    letter-spacing: -0.5px;
+    margin: 0;
+}
+
+/* Table */
+.products-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.products-table thead {
+    background: linear-gradient(135deg, #1a2a4f 0%, #0f1a30 100%);
+    color: white;
+    border-radius: 12px;
+}
+
+.products-table thead th {
+    padding: 0.9rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.products-table tbody td {
+    padding: 0.8rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(26, 42, 79, 0.04);
+}
+
+.products-table tbody tr:hover {
+    background: rgba(220, 53, 69, 0.03);
+}
+
+/* Thumbnail */
+.product-thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(26, 42, 79, 0.06);
+    display: block;
+}
+
+.product-thumbnail-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #adb5bd;
+}
+
+/* Stock badge */
+.stock-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.stock-ok {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.stock-low {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+/* Modal */
+.product-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.product-modal {
+    background: white;
+    border-radius: 20px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #1a2a4f 0%, #0f1a30 100%);
+    color: white;
+    border-radius: 20px 20px 0 0;
+}
+
+.product-modal-header h5 {
+    font-weight: 700;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.modal-close:hover {
+    transform: rotate(90deg);
+}
+
+.product-modal-body {
+    padding: 1.5rem;
+}
+
+.product-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Form */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #1a2a4f;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.08);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 576px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Image preview */
+.image-preview {
+    margin-top: 0.75rem;
+}
+
+.image-preview img {
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    object-fit: cover;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-sm {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+}
+
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #138496;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #b02a37;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.btn-custom-primary {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+    color: white;
+    border: none;
+    padding: 0.65rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-custom-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.35);
+    color: white;
+}
+
+/* Card */
+.card-custom {
+    background: white;
+    border-radius: 18px;
+    border: 1px solid rgba(26, 42, 79, 0.04);
+    box-shadow: 0 4px 16px rgba(26, 42, 79, 0.06);
+    overflow: hidden;
+}
+
+.card-custom .card-header {
+    background: linear-gradient(135deg, #1a2a4f 0%, #0f1a30 100%);
+    color: white;
+    border: none;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.card-custom .card-body {
+    padding: 1.25rem;
+}
+/* Thumbnail */
+.product-thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(26, 42, 79, 0.06);
+}

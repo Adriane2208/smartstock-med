@@ -1,0 +1,12 @@
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from . import views
+
+router = DefaultRouter()
+router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
+
+urlpatterns = [
+    path('', include(router.urls)),
+    # URL manuelle pour le PDF
+    path('invoices/<int:pk>/pdf/', views.InvoiceViewSet.as_view({'get': 'download_pdf'}), name='invoice-pdf'),
+]

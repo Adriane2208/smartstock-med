@@ -1,0 +1,227 @@
+/* ===========================================================
+   SmartStock Med – Home Page
+   Palette : #1a2a4f (bleu nuit) / #dc3545 (rouge) / #ffffff / #f8f9fa
+   =========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.home-page {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+}
+
+/* ---------- Navbar ---------- */
+.home-navbar {
+    background: #1a2a4f;
+    padding: 0.9rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.home-brand {
+    font-weight: 700;
+    font-size: 1.35rem;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.25s ease;
+    text-decoration: none;
+    color: white;
+}
+
+.home-brand:hover {
+    opacity: 0.85;
+    color: white;
+}
+
+.home-btn-outline {
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    background: transparent;
+    color: white;
+}
+
+.home-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.home-btn-danger {
+    background: #dc3545;
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.35);
+    color: white;
+}
+
+.home-btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.45);
+    color: white;
+}
+
+/* ---------- Hero ---------- */
+.home-hero {
+    background: linear-gradient(135deg, #1a2a4f 0%, #dc3545 100%);
+    padding: 110px 0;
+    color: #ffffff;
+    position: relative;
+}
+
+.home-hero-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+}
+
+.home-hero-accent {
+    color: #ffe3e7;
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 255, 255, 0.4);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 6px;
+}
+
+.home-hero-text {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.92;
+    line-height: 1.6;
+    max-width: 540px;
+}
+
+.home-btn-light {
+    font-weight: 600;
+    color: #1a2a4f;
+    background: white;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.home-btn-light:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    color: #1a2a4f;
+}
+
+.home-hero-icon {
+    font-size: 10rem;
+    opacity: 0.25;
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.25));
+    animation: homeFloat 5s ease-in-out infinite;
+}
+
+@keyframes homeFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-18px); }
+}
+
+/* ---------- Features ---------- */
+.home-features {
+    padding: 90px 0;
+    background: #f8f9fa;
+}
+
+.home-features-title {
+    text-align: center;
+    margin-bottom: 3.5rem;
+    color: #1a2a4f;
+    font-weight: 800;
+    font-size: 2.2rem;
+    letter-spacing: -0.5px;
+}
+
+.home-feature-card {
+    border: 1px solid rgba(26, 42, 79, 0.06);
+    border-radius: 18px;
+    transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(26, 42, 79, 0.06);
+    background: #ffffff;
+}
+
+.home-feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 16px 40px rgba(26, 42, 79, 0.14);
+    border-color: rgba(220, 53, 69, 0.15);
+}
+
+.home-feature-icon {
+    font-size: 2.5rem;
+    color: #dc3545;
+    margin-bottom: 1rem;
+    transition: transform 0.35s ease;
+}
+
+.home-feature-card:hover .home-feature-icon {
+    transform: scale(1.15) rotate(-5deg);
+}
+
+.home-feature-title {
+    color: #1a2a4f;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+/* ---------- Footer ---------- */
+.home-footer {
+    background: #1a2a4f;
+    color: #ffffff;
+    padding: 45px 0;
+    text-align: center;
+}
+
+.home-footer-sub {
+    opacity: 0.7;
+    margin-bottom: 0;
+    font-size: 0.95rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 991px) {
+    .home-hero-title {
+        font-size: 2.2rem;
+    }
+
+    .home-hero-icon {
+        font-size: 6rem;
+        margin-top: 2rem;
+    }
+
+    .home-hero {
+        padding: 70px 0;
+        text-align: center;
+    }
+
+    .home-hero-text {
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media (max-width: 576px) {
+    .home-hero-title {
+        font-size: 1.8rem;
+    }
+
+    .home-features {
+        padding: 60px 0;
+    }
+
+    .home-features-title {
+        font-size: 1.6rem;
+        margin-bottom: 2.5rem;
+    }
+}

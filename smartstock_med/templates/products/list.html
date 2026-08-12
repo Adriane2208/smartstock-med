@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Produits - SmartStock Med{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-custom navbar-expand-lg sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard/">
+            <img src="{% static 'images/logo.png' %}" alt="SmartStock Med" onerror="this.src='https://via.placeholder.com/40x40?text=SSM'">
+            SmartStock Med
+        </a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3">
+                <i class="fas fa-user-circle"></i> {{ request.user.username }}
+            </span>
+            <a href="/logout/" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2">
+            <div class="sidebar animated">
+                <a href="/dashboard/" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="/produits/" class="nav-link active">
+                    <i class="fas fa-boxes"></i> Produits
+                </a>
+                <a href="/factures/" class="nav-link">
+                    <i class="fas fa-file-invoice"></i> Factures
+                </a>
+                <a href="/livraisons/" class="nav-link">
+                    <i class="fas fa-truck"></i> Livraisons
+                </a>
+            </div>
+        </div>
+        
+        <!-- Contenu principal -->
+        <div class="col-md-10">
+            <div class="animated">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 style="color: var(--bleu-nuit);">
+                        <i class="fas fa-boxes"></i> Gestion des Produits
+                    </h2>
+                    <button class="btn btn-custom-primary" data-bs-toggle="modal" data-bs-target="#productModal" onclick="resetForm()">
+                        <i class="fas fa-plus-circle"></i> Nouveau Produit
+                    </button>
+                </div>
+                
+                <div class="card-custom">
+                    <div class="card-header">
+                        <i class="fas fa-list"></i> Liste des produits
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nom</th>
+                                        <th>Catégorie</th>
+                                        <th>Prix (CFA)</th>
+                                        <th>Stock</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTableBody">
+                                    <tr><td colspan="6" class="text-center">Chargement...</td</tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajout/Modification Produit -->
+<div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--bleu-nuit); color: white;">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="fas fa-plus-circle"></i> Ajouter un produit
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    <div class="mb-3">
+                        <label class="form-label">Nom du produit</label>
+                        <input type="text" id="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Catégorie</label>
+                        <select id="category" class="form-control">
+                            <option value="">Sélectionner</option>
+                            <option value="1">Dispositifs de diagnostic</option>
+                            <option value="2">Consommables</option>
+                            <option value="3">Équipements médicaux</option>
+                            <option value="4">Instruments</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prix (CFA)</label>
+                        <input type="number" id="price" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Stock</label>
+                        <input type="number" id="stock" class="form-control" value="0">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea id="description" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-custom-primary" onclick="saveProduct()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function getCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === 'csrftoken=') {
+                cookieValue = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+async function loadProducts() {
+    try {
+        const response = await fetch('/api/products/products/');
+        const products = await response.json();
+        
+        const tbody = document.getElementById('productsTableBody');
+        tbody.innerHTML = '';
+        
+        if (products.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Aucun produit trouvé</td</tr>';
+            return;
+        }
+        
+        products.forEach(product => {
+            const row = tbody.insertRow();
+            const stock = product.quantity || 0;
+            row.innerHTML = `
+                <td>${product.id}</td>
+                <td>${product.name}</td>
+                <td>${product.category_name || '-'}</td>
+                <td>${parseFloat(product.price).toLocaleString()}</td>
+                <td>
+                    <span class="badge ${stock < 10 ? 'bg-danger' : 'bg-success'}">
+                        ${stock}
+                    </span>
+                 </td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="editProduct(${product.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                 </td>
+            `;
+        });
+    } catch(error) {
+        console.error('Erreur:', error);
+    }
+}
+
+function resetForm() {
+    document.getElementById('productId').value = '';
+    document.getElementById('name').value = '';
+    document.getElementById('category').value = '';
+    document.getElementById('price').value = '';
+    document.getElementById('stock').value = '0';
+    document.getElementById('description').value = '';
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter un produit';
+}
+
+async function editProduct(id) {
+    try {
+        const response = await fetch(`/api/products/products/${id}/`);
+        const product = await response.json();
+        
+        document.getElementById('productId').value = product.id;
+        document.getElementById('name').value = product.name;
+        document.getElementById('category').value = product.category || '';
+        document.getElementById('price').value = product.price;
+        document.getElementById('stock').value = product.quantity || 0;
+        document.getElementById('description').value = product.description || '';
+        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Modifier le produit';
+        
+        const modal = new bootstrap.Modal(document.getElementById('productModal'));
+        modal.show();
+    } catch(error) {
+        alert('Erreur lors du chargement du produit');
+    }
+}
+
+async function saveProduct() {
+    const id = document.getElementById('productId').value;
+    const data = {
+        name: document.getElementById('name').value,
+        price: parseFloat(document.getElementById('price').value),
+        quantity: parseInt(document.getElementById('stock').value),
+        description: document.getElementById('description').value
+    };
+    
+    const categoryValue = document.getElementById('category').value;
+    if (categoryValue && !isNaN(categoryValue)) {
+        data.category = parseInt(categoryValue);
+    }
+    
+    const url = id ? `/api/products/products/${id}/` : '/api/products/products/';
+    const method = id ? 'PUT' : 'POST';
+    
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
+            modal.hide();
+            loadProducts();
+            resetForm();
+            alert(id ? 'Produit modifié !' : 'Produit créé !');
+        } else {
+            const error = await response.json();
+            alert('Erreur: ' + JSON.stringify(error));
+        }
+    } catch(error) {
+        alert('Erreur: ' + error.message);
+    }
+}
+
+async function deleteProduct(id) {
+    if (confirm('Supprimer ce produit ?')) {
+        try {
+            await fetch(`/api/products/products/${id}/`, {
+                method: 'DELETE',
+                headers: {'X-CSRFToken': getCSRFToken()}
+            });
+            loadProducts();
+        } catch(error) {
+            alert('Erreur lors de la suppression');
+        }
+    }
+}
+
+loadProducts();
+</script>
+{% endblock %}
