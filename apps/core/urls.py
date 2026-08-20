@@ -23,4 +23,8 @@ urlpatterns = [
     #visualisation des commandespar l'admin
     path('commandes-client/', views.client_orders_view, name='client_orders'),
     path('commandes-client/update/<int:order_id>/', views.update_order_status, name='update_order_status'),
+
+    #syteme intelligent
+    path('forecast-dashboard/', views.ForecastDashboardView.as_view(), name='forecast-dashboard'),
+
 ]

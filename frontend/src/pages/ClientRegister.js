@@ -1,7 +1,11 @@
+// frontend/src/pages/ClientRegister.js
+// VERSION CORRIGÉE - INSCRIPTION AVEC EMAIL
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaUser, FaEnvelope, FaLock, FaPhone, FaArrowLeft } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock, FaPhone, FaMapMarkerAlt, FaArrowLeft, FaHospital } from 'react-icons/fa';
 import './ClientRegister.css';
+import logo from './logo.png';
 
 function ClientRegister() {
     const [formData, setFormData] = useState({
@@ -34,8 +38,6 @@ function ClientRegister() {
         }
 
         try {
-            console.log(' Données envoyées:', formData);
-
             const response = await fetch('http://localhost:8000/api/users/register/', {
                 method: 'POST',
                 headers: {
@@ -46,21 +48,19 @@ function ClientRegister() {
                     email: formData.email,
                     password: formData.password,
                     phone: formData.phone || '',
-                    address: formData.address || ''
+                    address: formData.address || '',
+                    role: 'client'
                 })
             });
 
-            console.log(' Status:', response.status);
             const data = await response.json();
-            console.log(' Réponse:', data);
 
             if (response.ok && data.success) {
-                setSuccess('Inscription réussie ! Vous pouvez maintenant vous connecter.');
+                setSuccess('✅ Inscription réussie ! Vous pouvez maintenant vous connecter.');
                 setTimeout(() => {
                     navigate('/login');
                 }, 2000);
             } else {
-                // Gérer les erreurs spécifiques
                 let errorMsg = 'Erreur lors de l\'inscription';
                 if (data.username) errorMsg = data.username;
                 else if (data.email) errorMsg = data.email;
@@ -68,7 +68,7 @@ function ClientRegister() {
                 setError(errorMsg);
             }
         } catch (error) {
-            console.error(' Erreur:', error);
+            console.error('Erreur:', error);
             setError('Erreur de connexion au serveur');
         } finally {
             setLoading(false);
@@ -80,29 +80,36 @@ function ClientRegister() {
             <div 
                 className="register-bg" 
                 style={{ 
-                    backgroundImage: 'url(/logo.png)',
-                    backgroundRepeat: 'repeat',
-                    backgroundSize: '80px',
-                    opacity: 0.06,
-                    filter: 'blur(4px)'
+                    backgroundImage: `url(${logo})` 
                 }}
             ></div>
 
             <div className="register-card">
                 <div className="register-header">
+                    <div className="logo-circle-modern">
+                        <img 
+                            src={logo} 
+                            alt="Logo" 
+                            className="register-logo-img" 
+                            onError={(e)=>{e.target.style.display='none'; e.target.nextSibling.style.display='flex';}} 
+                        />
+                        <div className="register-logo-fallback" style={{display: 'none'}}>
+                            <FaHospital size={28} color="white" />
+                        </div>
+                    </div>
                     <h2>Créer un compte client</h2>
                     <p>Rejoignez SmartStock Med pour passer vos commandes</p>
                 </div>
 
                 {error && (
                     <div className="register-error">
-                         {error}
+                        <span>⚠️</span> {error}
                     </div>
                 )}
 
                 {success && (
                     <div className="register-success">
-                         {success}
+                        <span>✅</span> {success}
                     </div>
                 )}
 
@@ -154,6 +161,7 @@ function ClientRegister() {
                     <div className="register-group">
                         <label>Adresse</label>
                         <div className="register-input-wrapper">
+                            <FaMapMarkerAlt className="register-input-icon" />
                             <input 
                                 type="text" 
                                 name="address"
@@ -195,6 +203,11 @@ function ClientRegister() {
                     </div>
 
                     <button type="submit" className="register-btn" disabled={loading}>
+                        {loading ? (
+                            <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                        ) : (
+                            <FaEnvelope className="me-2" />
+                        )}
                         {loading ? 'Inscription en cours...' : 'Créer mon compte'}
                     </button>
                 </form>
@@ -202,7 +215,7 @@ function ClientRegister() {
                 <div className="register-footer">
                     <p>Déjà inscrit ? <Link to="/login">Se connecter</Link></p>
                     <Link to="/" className="register-back">
-                        <FaArrowLeft /> Retour à l'accueil
+                        <FaArrowLeft className="me-1" /> Retour à l'accueil
                     </Link>
                 </div>
             </div>

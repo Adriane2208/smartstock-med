@@ -1,24 +1,74 @@
-# apps/users/views.py
-# AJOUTER LES PERMISSIONS CORRECTES
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework import viewsets, permissions
+from rest_framework import status
 from django.contrib.auth import get_user_model
+from .serializers import UserSerializer
 import json
-
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework import exceptions
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import exceptions, serializers
+from django.contrib.auth import get_user_model
 User = get_user_model()
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Le champ attendu est 'email'
+        self.fields['email'] = serializers.CharField()
+        self.fields['password'] = serializers.CharField()
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+        
+        print(f"🔐 Tentative de connexion avec email: {email}")
+        
+        if not email or not password:
+            raise exceptions.AuthenticationFailed('Email et mot de passe requis')
+        
+        try:
+            user = User.objects.get(email=email)
+            print(f"✅ Email trouvé: {user.username}")
+        except User.DoesNotExist:
+            print(f"❌ Email non trouvé: {email}")
+            raise exceptions.AuthenticationFailed('Email ou mot de passe incorrect')
+        
+        if not user.check_password(password):
+            print(f"❌ Mot de passe incorrect pour: {user.username}")
+            raise exceptions.AuthenticationFailed('Email ou mot de passe incorrect')
+        
+        attrs['username'] = user.username
+        return super().validate(attrs)
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+class UserListView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        if request.user.role not in ['admin', 'manager']:
+            return Response(
+                {'error': 'Vous n\'avez pas la permission de voir cette liste'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        users = User.objects.all().order_by('-date_joined')
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
 
 class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
-        # Vérifier que l'utilisateur demande ses propres infos ou est admin
         if request.user.id != user_id and request.user.role not in ['admin', 'manager']:
             return Response(
                 {'error': 'Vous n\'êtes pas autorisé à voir ces informations'},
-                status=403
+                status=status.HTTP_403_FORBIDDEN
             )
         
         try:
@@ -34,6 +84,8 @@ class UserDetailView(APIView):
                 'last_name': user.last_name,
                 'is_staff': user.is_staff,
                 'is_superuser': user.is_superuser,
+                'date_joined': user.date_joined,
+                'last_login': user.last_login,
             })
         except User.DoesNotExist:
             return Response({'error': 'Utilisateur non trouvé'}, status=404)
@@ -54,19 +106,19 @@ class RegisterView(APIView):
             if not username or not email or not password:
                 return Response(
                     {'error': 'Tous les champs obligatoires doivent être remplis'}, 
-                    status=400
+                    status=status.HTTP_400_BAD_REQUEST
                 )
 
             if User.objects.filter(username=username).exists():
                 return Response(
-                    {'username': 'Ce nom d\'utilisateur existe déjà'}, 
-                    status=400
+                    {'error': 'Ce nom d\'utilisateur existe déjà'}, 
+                    status=status.HTTP_400_BAD_REQUEST
                 )
             
             if User.objects.filter(email=email).exists():
                 return Response(
-                    {'email': 'Cet email est déjà utilisé'}, 
-                    status=400
+                    {'error': 'Cet email est déjà utilisé'}, 
+                    status=status.HTTP_400_BAD_REQUEST
                 )
 
             user = User.objects.create_user(
@@ -86,10 +138,10 @@ class RegisterView(APIView):
                 'success': True,
                 'message': 'Compte créé avec succès !',
                 'user_id': user.id
-            })
+            }, status=status.HTTP_201_CREATED)
 
         except json.JSONDecodeError:
-            return Response({'error': 'Format de données invalide'}, status=400)
+            return Response({'error': 'Format de données invalide'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(f"Erreur: {e}")
-            return Response({'error': str(e)}, status=500)
+            print(f"❌ Erreur: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,42 +1,53 @@
-/* ClientRegister.css */
+/* ===========================================================
+   SmartStock Med – Register Page Style
+   =========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 .register-container {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #1a2a4f 0%, #dc3545 100%);
+    background: linear-gradient(135deg, #1a2a4f 0%, #111a33 100%);
     position: relative;
     overflow: hidden;
     font-family: 'Inter', sans-serif;
     padding: 2rem 0;
 }
 
+/* 📌 VOTRE LOGO EN ARRIÈRE-PLAN TRANSPARENT ET RÉPÉTÉ */
 .register-bg {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 0;
+    top: -50px;
+    left: -50px;
+    right: -50px;
+    bottom: -50px;
+    z-index: 1;
+    background-repeat: repeat;
+    background-size: 120px;
+    opacity: 0.05;
+    filter: blur(1px);
     pointer-events: none;
 }
 
 .register-card {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 24px;
     width: 100%;
     max-width: 480px;
     padding: 2.5rem;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    animation: fadeInUp 0.5s ease;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .register-header {
@@ -44,36 +55,67 @@
     margin-bottom: 2rem;
 }
 
+/* 📌 Style du logo circulaire identique au Login */
+.logo-circle-modern {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 1rem;
+    background: linear-gradient(135deg, #1a2a4f 0%, #2a3a6f 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px rgba(26, 42, 79, 0.25);
+    overflow: hidden;
+}
+
+.register-logo-img {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
+}
+
+.register-logo-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .register-header h2 {
     color: #1a2a4f;
-    font-weight: 700;
-    font-size: 1.5rem;
+    font-weight: 800;
+    font-size: 1.6rem;
     margin-bottom: 0.25rem;
+    letter-spacing: -0.5px;
 }
 
 .register-header p {
     color: #6c757d;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
 }
 
 .register-error {
-    background: rgba(220, 53, 69, 0.1);
-    border-left: 3px solid #dc3545;
+    background: rgba(220, 53, 69, 0.08);
+    border-left: 4px solid #dc3545;
     color: #dc3545;
     padding: 0.75rem 1rem;
-    border-radius: 8px;
+    border-radius: 12px;
     margin-bottom: 1.5rem;
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .register-success {
-    background: rgba(40, 167, 69, 0.1);
-    border-left: 3px solid #28a745;
+    background: rgba(40, 167, 69, 0.08);
+    border-left: 4px solid #28a745;
     color: #28a745;
     padding: 0.75rem 1rem;
-    border-radius: 8px;
+    border-radius: 12px;
     margin-bottom: 1.5rem;
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .register-group {
@@ -85,7 +127,7 @@
     font-size: 0.85rem;
     font-weight: 600;
     color: #1a2a4f;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.5rem;
 }
 
 .register-input-wrapper {
@@ -96,45 +138,53 @@
 
 .register-input-icon {
     position: absolute;
-    left: 1rem;
+    left: 1.1rem;
     color: #adb5bd;
     font-size: 1rem;
+    transition: color 0.3s ease;
 }
 
 .register-input-wrapper input {
     width: 100%;
-    padding: 0.8rem 1rem 0.8rem 2.8rem;
+    padding: 0.85rem 1rem 0.85rem 3rem;
     border: 2px solid #e9ecef;
-    border-radius: 12px;
-    font-size: 1rem;
+    border-radius: 14px;
+    font-size: 0.95rem;
     transition: all 0.3s ease;
     background: #f8f9fa;
+    color: #1a2a4f;
 }
 
 .register-input-wrapper input:focus {
     outline: none;
     border-color: #dc3545;
     background: white;
-    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.08);
+    box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.08);
+}
+
+.register-input-wrapper input:focus ~ .register-input-icon,
+.register-input-wrapper:focus-within .register-input-icon {
+    color: #dc3545;
 }
 
 .register-btn {
     width: 100%;
-    padding: 0.9rem;
+    padding: 0.95rem;
     background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     color: white;
     font-weight: 700;
     font-size: 1rem;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
     cursor: pointer;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.35);
 }
 
 .register-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.35);
+    box-shadow: 0 12px 30px rgba(220, 53, 69, 0.45);
 }
 
 .register-btn:disabled {
@@ -145,44 +195,40 @@
 
 .register-footer {
     text-align: center;
-    margin-top: 1.5rem;
-    padding-top: 1rem;
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
     border-top: 1px solid #e9ecef;
 }
 
 .register-footer p {
     color: #6c757d;
     font-size: 0.9rem;
+    margin-bottom: 0.5rem;
 }
 
 .register-footer a {
     color: #dc3545;
     text-decoration: none;
     font-weight: 600;
+    transition: opacity 0.2s ease;
 }
 
 .register-footer a:hover {
-    text-decoration: underline;
+    opacity: 0.8;
 }
 
 .register-back {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: #6c757d;
-    text-decoration: none;
+    color: #6c757d !important;
     font-size: 0.9rem;
     margin-top: 0.5rem;
-    transition: color 0.3s ease;
-}
-
-.register-back:hover {
-    color: #dc3545;
 }
 
 @media (max-width: 576px) {
     .register-card {
         margin: 1rem;
-        padding: 1.5rem;
+        padding: 1.75rem;
     }
 }

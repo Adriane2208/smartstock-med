@@ -1,5 +1,5 @@
 // frontend/src/pages/Checkout.js
-// CORRIGÉ POUR LE PAIEMENT
+// VERSION CORRIGÉE AVEC AUTO-REMPLISSAGE
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -32,7 +32,6 @@ function PaymentForm({ cart, total, customerInfo, onSuccess, onError }) {
         }
 
         try {
-            // 1. Récupérer le token
             const token = localStorage.getItem('access_token');
             if (!token) {
                 throw new Error('Vous devez être connecté pour effectuer un paiement');
@@ -40,7 +39,6 @@ function PaymentForm({ cart, total, customerInfo, onSuccess, onError }) {
 
             console.log('1. Création de la commande...');
             
-            // 2. Créer la commande avec le token dans les headers
             const orderResponse = await api.post('/shop/create-order/', {
                 customer_name: customerInfo.customer_name,
                 customer_email: customerInfo.customer_email,
@@ -64,10 +62,9 @@ function PaymentForm({ cart, total, customerInfo, onSuccess, onError }) {
 
             console.log('3. Création du paiement Stripe...');
 
-            // 3. Créer le payment intent avec le token
             const paymentResponse = await api.post('/payments/create-payment-intent/', {
                 order_id: orderResponse.data.order_id,
-                amount: total,
+                amount: Math.round(total),
                 currency: 'XAF'
             }, {
                 headers: {
@@ -99,7 +96,6 @@ function PaymentForm({ cart, total, customerInfo, onSuccess, onError }) {
             console.error('❌ Erreur complète:', error);
             console.error('❌ Response:', error.response);
             
-            // Message d'erreur plus explicite
             if (error.response?.status === 403) {
                 setPaymentError('Vous n\'avez pas la permission d\'effectuer ce paiement. Veuillez vous reconnecter.');
                 onError('Permission refusée. Veuillez vous reconnecter.');
@@ -184,6 +180,7 @@ function Checkout() {
     const [cart, setCart] = useState([]);
     const [paymentSuccess, setPaymentSuccess] = useState(false);
     const [orderId, setOrderId] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
         customer_name: '',
         customer_email: '',
@@ -194,6 +191,31 @@ function Checkout() {
 
     const token = localStorage.getItem('access_token');
     const userRole = localStorage.getItem('user_role');
+
+    // ===== CHARGER LES INFOS UTILISATEUR =====
+    useEffect(() => {
+        const loadUserInfo = async () => {
+            try {
+                const userId = localStorage.getItem('user_id');
+                if (userId) {
+                    const response = await api.get(`/users/${userId}/`);
+                    const user = response.data;
+                    setFormData({
+                        customer_name: user.first_name || user.username,
+                        customer_email: user.email,
+                        customer_phone: user.phone || '',
+                        customer_address: user.address || ''
+                    });
+                }
+            } catch (error) {
+                console.error('Erreur chargement infos utilisateur:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        loadUserInfo();
+    }, []);
 
     useEffect(() => {
         const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -212,7 +234,8 @@ function Checkout() {
     }, [token, userRole, navigate]);
 
     const getTotal = () => {
-        return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const sum = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        return Math.round(sum);
     };
 
     const handlePaymentSuccess = (orderId) => {
@@ -225,7 +248,6 @@ function Checkout() {
     };
 
     const handlePaymentError = (error) => {
-        // Ne pas alerter ici car le message est déjà affiché dans le formulaire
         console.error('Erreur de paiement:', error);
     };
 
@@ -237,6 +259,19 @@ function Checkout() {
         { icon: FaMicroscope, delay: 12, duration: 24, top: 70, left: 8 },
         { icon: FaHospital, delay: 15, duration: 26, top: 85, left: 75 }
     ];
+
+    if (loading) {
+        return (
+            <div className="checkout-page">
+                <div className="checkout-bg-gradient"></div>
+                <div className="container py-5 text-center">
+                    <div className="spinner-border text-light" role="status">
+                        <span className="visually-hidden">Chargement...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (paymentSuccess) {
         return (

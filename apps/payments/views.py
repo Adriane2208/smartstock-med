@@ -1,3 +1,5 @@
+# apps/payments/views.py
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -18,13 +20,14 @@ class CreatePaymentIntentView(APIView):
             amount = data.get('amount')
             currency = data.get('currency', 'XAF')
             
+            print(f"📝 Montant reçu: {amount} {currency}")
+            
             if not order_id:
                 return Response(
                     {'error': 'ID de commande requis'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Vérifier que la commande existe
             try:
                 order = ClientOrder.objects.get(id=order_id)
             except ClientOrder.DoesNotExist:
@@ -33,9 +36,16 @@ class CreatePaymentIntentView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
             
-            # Créer le payment intent
+            # 🔑 IMPORTANT: Stripe utilise les centimes
+            # Pour XAF, Stripe n'utilise pas de sous-unités, donc on multiplie par 100
+            # Pour les devises comme XAF, le montant doit être en centimes
+            amount_in_cents = int(amount * 100)
+            
+            print(f"💰 Montant en centimes: {amount_in_cents}")
+            
+            # Créer le PaymentIntent
             intent = stripe.PaymentIntent.create(
-                amount=int(amount * 100),  # Stripe utilise les centimes
+                amount=amount_in_cents,
                 currency=currency.lower(),
                 metadata={
                     'order_id': str(order_id),
@@ -49,11 +59,13 @@ class CreatePaymentIntentView(APIView):
             })
             
         except stripe.error.StripeError as e:
+            print(f"❌ Erreur Stripe: {str(e)}")
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
+            print(f"❌ Erreur: {str(e)}")
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
