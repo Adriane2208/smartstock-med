@@ -19,6 +19,8 @@ function Sidebar() {
         { path: '/client-orders', name: 'Commandes client', icon: <FaShoppingCart /> },
         { path: '/users', name: 'Utilisateurs', icon: <FaUsers /> },
         { path: '/forecast', name: 'Prévisions', icon: <FaChartBar /> },
+        { path: '/analyze-products', name: 'Analyse produits', icon: <FaBoxes /> },
+        { path: '/analyze-clients', name: 'Analyse clients', icon: <FaUsers /> },
     ];
 
     // Menu pour LIVREUR

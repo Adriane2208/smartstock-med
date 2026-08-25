@@ -39,7 +39,8 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             return queryset.filter(delivery_person=user)
         
         if user.role == 'client':
-            return queryset.filter(customer_email=user.email)
+            return queryset.filter(
+                order__user=user).distinct()
         
         return queryset.none()
     
@@ -331,3 +332,14 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         deliveries = Delivery.objects.filter(delivery_person=request.user)
         serializer = self.get_serializer(deliveries, many=True)
         return Response(serializer.data)
+
+from rest_framework.decorators import action
+from apps.core.services.gps_simulator import GPSSimulator
+
+@action(detail=True, methods=['get'], url_path='tracking')
+def get_tracking(self, request, pk=None):
+    """Récupère les informations de suivi GPS"""
+    tracking_info = GPSSimulator.get_tracking_info(pk)
+    if tracking_info:
+        return Response(tracking_info)
+    return Response({'error': 'Suivi non trouvé'}, status=404)   

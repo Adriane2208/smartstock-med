@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  FaUserCircle, FaChevronDown, FaUser, FaEnvelope, FaPhone, 
-  FaSignOutAlt, FaHospital, FaCog
+   FaChevronDown, FaUser, FaEnvelope, FaPhone, 
+  FaSignOutAlt, FaHospital
 } from 'react-icons/fa';
 import NotificationBell from './NotificationBell';
 import api from '../api/axios';

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
     FaChartLine, FaBoxes, FaFileInvoice, FaTruck, 
     FaExclamationTriangle, FaCheckCircle,
-    FaShoppingCart, FaUsers
+    FaShoppingCart, FaUsers, FaBrain  // ← AJOUTER FaBrain
 } from 'react-icons/fa';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import {
@@ -19,7 +19,6 @@ import {
     LineElement,
     Filler
 } from 'chart.js';
-// IMPORTANT: NE PAS IMPORTER Layout ici
 import ProductImage from '../components/ProductImage';
 import api from '../api/axios';
 import './Dashboard.css';
@@ -68,6 +67,17 @@ function Dashboard() {
         '#dc3545', '#1a2a4f', '#28a745', '#ffc107', '#17a2b8',
         '#6f42c1', '#fd7e14', '#20c997', '#e83e8c', '#007bff'
     ];
+
+    // Fonction pour lancer l'analyse intelligente
+    const runIntelligence = async () => {
+        try {
+            const response = await api.post('/core/run-intelligence/');
+            alert(`✅ ${response.data.alerts} produits dormants détectés`);
+            loadDashboard();
+        } catch (error) {
+            alert('Erreur lors de l\'analyse');
+        }
+    };
 
     const loadDashboard = async () => {
         try {
@@ -286,7 +296,14 @@ function Dashboard() {
                     <FaChartLine className="me-2" style={{ color: '#dc3545' }} /> 
                     Tableau de bord
                 </h2>
-                <div>
+                <div className="d-flex align-items-center gap-2">
+                    <button 
+                        className="btn btn-warning me-2"
+                        onClick={runIntelligence}
+                        style={{ borderRadius: '20px' }}
+                    >
+                        <FaBrain className="me-1" /> Lancer l'analyse
+                    </button>
                     <span className="badge" style={{ 
                         background: '#1a2a4f', 
                         color: 'white',

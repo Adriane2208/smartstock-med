@@ -1,10 +1,11 @@
-// frontend/src/App.js
-// CORRIGÉ - SUPPRESSION DE ClientLayout INUTILISÉ
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+
+import Notifications from './pages/Notifications';
+
+
 
 // Pages publiques
 import Home from './pages/Home';
@@ -20,6 +21,8 @@ import Products from './pages/Products';
 import Invoices from './pages/Invoices';
 import Deliveries from './pages/Deliveries';
 import ClientOrders from './pages/ClientOrders';
+import AnalyzeProducts from './pages/AnalyzeProducts';
+import AnalyzeClients from './pages/AnalyzeClients';
 
 // Pages livreur
 import DeliveryDashboard from './pages/DeliveryDashboard';
@@ -31,10 +34,10 @@ import OrderTracking from './pages/OrderTracking';
 import Profile from './pages/Profile';
 import Users from './pages/Users';
 import Forecast from './pages/Forecast';
+import OrderTrackingList from './pages/OrderTrackingList';
 
-// Layout principal (pour admin et livreur)
+// Layout principal
 import Layout from './components/Layout';
-// ClientLayout SUPPRIMÉ - non utilisé dans App.js (les pages client l'importent directement)
 
 // Composant de protection des routes
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
@@ -69,7 +72,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<ClientRegister />} />
 
-                {/* Routes Admin et Manager (AVEC Layout principal) */}
+                {/* Routes Admin et Manager (AVEC Layout) */}
                 <Route path="/dashboard" element={
                     <PrivateRoute allowedRoles={['admin', 'manager']}>
                         <Layout><Dashboard /></Layout>
@@ -105,15 +108,29 @@ function App() {
                         <Layout><Forecast /></Layout>
                     </PrivateRoute>
                 } />
+                <Route path="/notifications" element={
+                    <PrivateRoute allowedRoles={['admin', 'manager']}>
+                         <Layout><Notifications /></Layout>
+                            </PrivateRoute>} />
+                <Route path="/analyze-products" element={
+                    <PrivateRoute allowedRoles={['admin', 'manager']}>
+                        <AnalyzeProducts />
+                    </PrivateRoute>
+                } />
+                <Route path="/analyze-clients" element={
+                    <PrivateRoute allowedRoles={['admin', 'manager']}>
+                        <AnalyzeClients />
+                </PrivateRoute>
+                } />            
 
-                {/* Routes Livreur (AVEC Layout principal) */}
+                {/* Routes Livreur (AVEC Layout) */}
                 <Route path="/delivery-dashboard" element={
                     <PrivateRoute allowedRoles={['delivery']}>
                         <Layout><DeliveryDashboard /></Layout>
                     </PrivateRoute>
                 } />
 
-                {/* Routes Client (AVEC ClientLayout - importé dans chaque page) */}
+                {/* Routes Client */}
                 <Route path="/shop" element={
                     <PrivateRoute allowedRoles={['client', 'admin', 'manager']}>
                         <Shop />
@@ -139,11 +156,13 @@ function App() {
                         <MyInvoices />
                     </PrivateRoute>
                 } />
+                <Route path="/tracking/:orderId" element={<OrderTracking />} />
                 <Route path="/order-tracking" element={
-                    <PrivateRoute allowedRoles={['client']}>
-                        <OrderTracking />
-                    </PrivateRoute>
-                } />
+    <PrivateRoute allowedRoles={['client']}>
+        <OrderTrackingList />
+    </PrivateRoute>
+} />        
+    
                 <Route path="/profile" element={
                     <PrivateRoute allowedRoles={['client', 'delivery', 'admin', 'manager']}>
                         <Profile />

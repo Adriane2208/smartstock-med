@@ -1,8 +1,12 @@
 // frontend/src/pages/MyOrders.js
-// MES COMMANDES - VERSION CORRIGÉE
+// MES COMMANDES - VERSION COMPLÈTE ET CORRIGÉE
 
 import React, { useState, useEffect } from 'react';
-import { FaShoppingCart, FaEye, FaClock, FaCheckCircle, FaTruck, FaBox, FaTimes } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { 
+    FaShoppingCart, FaEye, FaClock, FaCheckCircle, 
+    FaTruck, FaBox, FaTimes, FaFileInvoice 
+} from 'react-icons/fa';
 import ClientLayout from '../components/ClientLayout';
 import api from '../api/axios';
 
@@ -10,10 +14,10 @@ function MyOrders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         loadOrders();
-        // Rafraîchir toutes les 30 secondes
         const interval = setInterval(loadOrders, 30000);
         return () => clearInterval(interval);
     }, []);
@@ -23,13 +27,12 @@ function MyOrders() {
             setLoading(true);
             setError(null);
             
-            // Récupérer les commandes du client connecté
             const response = await api.get('/shop/my-orders/');
-            console.log('Commandes chargées:', response.data);
+            console.log('📦 Commandes chargées:', response.data);
             setOrders(response.data);
             
         } catch (error) {
-            console.error('Erreur chargement commandes:', error);
+            console.error('❌ Erreur chargement commandes:', error);
             setError('Impossible de charger vos commandes');
             
             if (error.response?.status === 401) {
@@ -59,6 +62,35 @@ function MyOrders() {
         );
     };
 
+    const handleTracking = (orderId) => {
+        console.log('🔍 Navigation vers tracking avec ID:', orderId);
+        if (!orderId) {
+            alert('ID de commande invalide');
+            return;
+        }
+        navigate(`/tracking/${orderId}`);
+    };
+
+    const showDetails = (order) => {
+        const items = order.items || [];
+        let message = `📋 Détails de la commande #${order.id}\n`;
+        message += `📅 Date: ${new Date(order.created_at).toLocaleString()}\n`;
+        message += `💰 Total: ${parseFloat(order.total).toLocaleString()} CFA\n`;
+        message += `📊 Statut: ${order.status}\n`;
+        message += `\n📦 Articles:\n`;
+        if (items.length > 0) {
+            items.forEach((item, idx) => {
+                const productName = item.product_name || item.product?.name || 'Produit';
+                const price = parseFloat(item.price) || 0;
+                const quantity = item.quantity || 0;
+                message += `  ${idx + 1}. ${productName} x ${quantity} = ${(price * quantity).toLocaleString()} CFA\n`;
+            });
+        } else {
+            message += '  Aucun article';
+        }
+        alert(message);
+    };
+
     if (loading) {
         return (
             <ClientLayout title="Mes commandes" icon={<FaShoppingCart />}>
@@ -66,6 +98,7 @@ function MyOrders() {
                     <div className="spinner-border text-light" role="status">
                         <span className="visually-hidden">Chargement...</span>
                     </div>
+                    <p className="text-white-50 mt-2">Chargement de vos commandes...</p>
                 </div>
             </ClientLayout>
         );
@@ -74,9 +107,20 @@ function MyOrders() {
     if (error) {
         return (
             <ClientLayout title="Mes commandes" icon={<FaShoppingCart />}>
-                <div className="alert alert-danger">
-                    <strong>Erreur:</strong> {error}
-                    <button className="btn btn-sm btn-link" onClick={loadOrders}>Réessayer</button>
+                <div className="alert alert-danger shadow-sm" style={{ borderRadius: '16px' }}>
+                    <div className="d-flex align-items-center">
+                        <span style={{ fontSize: '2rem', marginRight: '1rem' }}>❌</span>
+                        <div>
+                            <strong>Erreur:</strong> {error}
+                        </div>
+                    </div>
+                    <button 
+                        className="btn btn-primary btn-sm mt-2" 
+                        onClick={loadOrders} 
+                        style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }}
+                    >
+                        <FaTruck className="me-1" /> Réessayer
+                    </button>
                 </div>
             </ClientLayout>
         );
@@ -86,13 +130,14 @@ function MyOrders() {
         <ClientLayout title="Mes commandes" icon={<FaShoppingCart />}>
             {orders.length === 0 ? (
                 <div className="text-center py-5">
-                    <FaShoppingCart size={48} className="mb-3" style={{ opacity: 0.5, color: 'white' }} />
-                    <p className="text-white">Aucune commande passée</p>
+                    <FaShoppingCart size={64} className="mb-3" style={{ opacity: 0.5, color: 'white' }} />
+                    <h4 className="text-white">Aucune commande passée</h4>
+                    <p className="text-white-50">Commencez vos achats dès maintenant !</p>
                     <button 
                         className="btn-client-primary mt-3"
-                        onClick={() => window.location.href = '/shop'}
+                        onClick={() => navigate('/shop')}
                     >
-                        <FaShoppingCart /> Visiter la boutique
+                        <FaShoppingCart className="me-2" /> Visiter la boutique
                     </button>
                 </div>
             ) : (
@@ -101,7 +146,7 @@ function MyOrders() {
                         <h5>
                             <FaShoppingCart className="me-2" /> Historique des commandes
                         </h5>
-                        <span className="badge-count">{orders.length}</span>
+                        <span className="badge-count">{orders.length} commande{orders.length > 1 ? 's' : ''}</span>
                     </div>
                     <div className="card-body">
                         <div className="table-responsive">
@@ -116,44 +161,68 @@ function MyOrders() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {orders.map(order => (
-                                        <tr key={order.id}>
-                                            <td>
-                                                <strong>#{order.id}</strong>
-                                                {order.invoice && (
-                                                    <div>
-                                                        <small className="text-muted">
-                                                            Facture: {order.invoice.invoice_number || 'N°' + order.invoice.id}
-                                                        </small>
+                                    {orders.map(order => {
+                                        const canTrack = order.status !== 'pending' && order.status !== 'cancelled';
+                                        return (
+                                            <tr key={order.id}>
+                                                <td>
+                                                    <strong>#{order.id}</strong>
+                                                    {order.invoice && (
+                                                        <div>
+                                                            <small className="text-muted">
+                                                                <FaFileInvoice className="me-1" />
+                                                                Facture: {order.invoice.invoice_number || 'N°' + order.invoice.id}
+                                                            </small>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {new Date(order.created_at).toLocaleDateString()}
+                                                    <br />
+                                                    <small className="text-muted">
+                                                        {new Date(order.created_at).toLocaleTimeString()}
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <strong style={{ color: '#dc3545' }}>
+                                                        {parseFloat(order.total).toLocaleString()} CFA
+                                                    </strong>
+                                                </td>
+                                                <td>{getStatusBadge(order.status)}</td>
+                                                <td>
+                                                    <div className="d-flex gap-1 flex-wrap">
+                                                        <button 
+                                                            className="btn btn-sm btn-info"
+                                                            onClick={() => showDetails(order)}
+                                                            title="Voir les détails"
+                                                        >
+                                                            <FaEye /> Détails
+                                                        </button>
+                                                        {canTrack && (
+                                                            <button 
+                                                                className="btn btn-sm btn-primary"
+                                                                onClick={() => handleTracking(order.id)}
+                                                                title="Suivre la commande"
+                                                            >
+                                                                <FaTruck /> Suivre
+                                                            </button>
+                                                        )}
+                                                        {order.invoice && (
+                                                            <button 
+                                                                className="btn btn-sm btn-success"
+                                                                onClick={() => {
+                                                                    alert(`📄 Téléchargement de la facture #${order.invoice.invoice_number || order.invoice.id}\nFonctionnalité disponible prochainement.`);
+                                                                }}
+                                                                title="Télécharger la facture"
+                                                            >
+                                                                <FaFileInvoice /> PDF
+                                                            </button>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </td>
-                                            <td>
-                                                {new Date(order.created_at).toLocaleDateString()}
-                                                <br />
-                                                <small className="text-muted">
-                                                    {new Date(order.created_at).toLocaleTimeString()}
-                                                </small>
-                                            </td>
-                                            <td>
-                                                <strong style={{ color: '#dc3545' }}>
-                                                    {parseFloat(order.total).toLocaleString()} CFA
-                                                </strong>
-                                            </td>
-                                            <td>{getStatusBadge(order.status)}</td>
-                                            <td>
-                                                <button 
-                                                    className="btn btn-sm btn-info"
-                                                    onClick={() => {
-                                                        // Afficher les détails - à implémenter
-                                                        alert(`Détails de la commande #${order.id}\nTotal: ${parseFloat(order.total).toLocaleString()} CFA\nStatut: ${order.status}`);
-                                                    }}
-                                                >
-                                                    <FaEye /> Détails
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
