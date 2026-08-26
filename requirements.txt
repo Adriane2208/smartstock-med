@@ -1,0 +1,12 @@
+Django==6.0
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+reportlab
+Pillow
+python-dotenv
+stripe
+gunicorn
+whitenoise
+psycopg2-binary
+django-environ

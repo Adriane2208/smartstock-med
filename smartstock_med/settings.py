@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 load_dotenv()
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -211,3 +212,7 @@ CORS_ALLOW_HEADERS = [
 # Stripe - Utiliser les variables d'environnement
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
+# Utiliser PostgreSQL sur Railway
+DATABASES = {
+    'default': dj_database_url.config(conn_max_age=600, default='sqlite:///db.sqlite3')
+}
