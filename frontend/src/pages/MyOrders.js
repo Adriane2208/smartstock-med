@@ -63,12 +63,13 @@ function MyOrders() {
     };
 
     const handleTracking = (orderId) => {
-        console.log('🔍 Navigation vers tracking avec ID:', orderId);
+        console.log(' Navigation vers tracking avec ID:', orderId);
         if (!orderId) {
             alert('ID de commande invalide');
             return;
         }
-        navigate(`/tracking/${orderId}`);
+        window.location.href = `/tracking/${orderId}`;
+        //navigate(`/tracking/${orderId}`);
     };
 
     const showDetails = (order) => {
@@ -202,6 +203,7 @@ function MyOrders() {
                                                             <button 
                                                                 className="btn btn-sm btn-primary"
                                                                 onClick={() => handleTracking(order.id)}
+                                                                disabled={order.status === 'pending'}
                                                                 title="Suivre la commande"
                                                             >
                                                                 <FaTruck /> Suivre

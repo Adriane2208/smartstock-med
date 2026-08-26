@@ -3,10 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
-import Notifications from './pages/Notifications';
-
-
-
 // Pages publiques
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -19,27 +15,30 @@ import ClientRegister from './pages/ClientRegister';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Invoices from './pages/Invoices';
-import Deliveries from './pages/Deliveries';
+import DeliveriesAdmin from './pages/Deliveries';
 import ClientOrders from './pages/ClientOrders';
+import Users from './pages/Users';
+import Forecast from './pages/Forecast';
+import Notifications from './pages/Notifications';
 import AnalyzeProducts from './pages/AnalyzeProducts';
 import AnalyzeClients from './pages/AnalyzeClients';
 
 // Pages livreur
 import DeliveryDashboard from './pages/DeliveryDashboard';
+import DeliveriesLivreur from './pages/Deliveries';
+import OrderTrackingHistory from './pages/OrderTrackingHistory';
 
 // Pages client
 import MyOrders from './pages/MyOrders';
 import MyInvoices from './pages/MyInvoices';
 import OrderTracking from './pages/OrderTracking';
 import Profile from './pages/Profile';
-import Users from './pages/Users';
-import Forecast from './pages/Forecast';
 import OrderTrackingList from './pages/OrderTrackingList';
 
-// Layout principal
+// Layout
 import Layout from './components/Layout';
 
-// Composant de protection des routes
+// Composant de protection
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
     const token = localStorage.getItem('access_token');
     const userRole = localStorage.getItem('user_role');
@@ -67,12 +66,19 @@ function App() {
     return (
         <Router>
             <Routes>
-                {/* Pages publiques (SANS Layout) */}
+                {/* Pages publiques */}
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<ClientRegister />} />
+                <Route path="/shop" element={<Shop />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={
+                    <PrivateRoute allowedRoles={['client', 'admin', 'manager']}>
+                        <Checkout />
+                    </PrivateRoute>
+                } />
 
-                {/* Routes Admin et Manager (AVEC Layout) */}
+                {/* Routes Admin - AVEC Layout dans la route */}
                 <Route path="/dashboard" element={
                     <PrivateRoute allowedRoles={['admin', 'manager']}>
                         <Layout><Dashboard /></Layout>
@@ -88,14 +94,14 @@ function App() {
                         <Layout><Invoices /></Layout>
                     </PrivateRoute>
                 } />
-                <Route path="/deliveries" element={
+                <Route path="/deliveries-admin" element={
                     <PrivateRoute allowedRoles={['admin', 'manager']}>
-                        <Layout><Deliveries /></Layout>
+                        <Layout><DeliveriesAdmin /></Layout>
                     </PrivateRoute>
                 } />
                 <Route path="/client-orders" element={
                     <PrivateRoute allowedRoles={['admin', 'manager']}>
-                        <ClientOrders />
+                        <Layout><ClientOrders /></Layout>
                     </PrivateRoute>
                 } />
                 <Route path="/users" element={
@@ -110,62 +116,57 @@ function App() {
                 } />
                 <Route path="/notifications" element={
                     <PrivateRoute allowedRoles={['admin', 'manager']}>
-                         <Layout><Notifications /></Layout>
-                            </PrivateRoute>} />
+                        <Layout><Notifications /></Layout>
+                    </PrivateRoute>
+                } />
                 <Route path="/analyze-products" element={
                     <PrivateRoute allowedRoles={['admin', 'manager']}>
-                        <AnalyzeProducts />
+                        <Layout><AnalyzeProducts /></Layout>
                     </PrivateRoute>
                 } />
                 <Route path="/analyze-clients" element={
                     <PrivateRoute allowedRoles={['admin', 'manager']}>
-                        <AnalyzeClients />
-                </PrivateRoute>
-                } />            
+                        <Layout><AnalyzeClients /></Layout>
+                    </PrivateRoute>
+                } />
 
-                {/* Routes Livreur (AVEC Layout) */}
+                {/* Routes Livreur  */}
                 <Route path="/delivery-dashboard" element={
                     <PrivateRoute allowedRoles={['delivery']}>
-                        <Layout><DeliveryDashboard /></Layout>
+                        <DeliveryDashboard />
+                    </PrivateRoute>
+                } />
+                <Route path="/deliveries" element={
+                    <PrivateRoute allowedRoles={['delivery']}>
+                        <Layout><DeliveriesLivreur /></Layout>
+                    </PrivateRoute>
+                } />
+                <Route path="/order-tracking" element={
+                    <PrivateRoute allowedRoles={['delivery', 'client']}>
+                        <OrderTrackingHistory />
+                    </PrivateRoute>
+                } />
+                <Route path="/profile" element={
+                    <PrivateRoute allowedRoles={['client', 'delivery', 'admin', 'manager']}>
+                        <Profile />
                     </PrivateRoute>
                 } />
 
                 {/* Routes Client */}
-                <Route path="/shop" element={
-                    <PrivateRoute allowedRoles={['client', 'admin', 'manager']}>
-                        <Shop />
-                    </PrivateRoute>
-                } />
-                <Route path="/cart" element={
-                    <PrivateRoute allowedRoles={['client', 'admin', 'manager']}>
-                        <Cart />
-                    </PrivateRoute>
-                } />
-                <Route path="/checkout" element={
-                    <PrivateRoute allowedRoles={['client', 'admin', 'manager']}>
-                        <Checkout />
-                    </PrivateRoute>
-                } />
                 <Route path="/my-orders" element={
                     <PrivateRoute allowedRoles={['client']}>
-                        <MyOrders />
+                        <Layout><MyOrders /></Layout>
                     </PrivateRoute>
                 } />
                 <Route path="/my-invoices" element={
                     <PrivateRoute allowedRoles={['client']}>
-                        <MyInvoices />
+                        <Layout><MyInvoices /></Layout>
                     </PrivateRoute>
                 } />
                 <Route path="/tracking/:orderId" element={<OrderTracking />} />
-                <Route path="/order-tracking" element={
-    <PrivateRoute allowedRoles={['client']}>
-        <OrderTrackingList />
-    </PrivateRoute>
-} />        
-    
-                <Route path="/profile" element={
-                    <PrivateRoute allowedRoles={['client', 'delivery', 'admin', 'manager']}>
-                        <Profile />
+                <Route path="/order-tracking-list" element={
+                    <PrivateRoute allowedRoles={['client']}>
+                        <Layout><OrderTrackingList /></Layout>
                     </PrivateRoute>
                 } />
 

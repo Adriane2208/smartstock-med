@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   FaTachometerAlt, FaBoxes, FaFileInvoice, FaTruck, FaShoppingCart,
   FaUsers, FaChartBar, FaHistory, FaClipboardList, FaUserCheck,
-  FaStore, FaCartPlus, FaReceipt, FaUserCog
+  FaStore, FaCartPlus, FaReceipt, FaUserCog, FaBell
 } from 'react-icons/fa';
 
 function Sidebar() {
@@ -19,15 +19,16 @@ function Sidebar() {
         { path: '/client-orders', name: 'Commandes client', icon: <FaShoppingCart /> },
         { path: '/users', name: 'Utilisateurs', icon: <FaUsers /> },
         { path: '/forecast', name: 'Prévisions', icon: <FaChartBar /> },
+        { path: '/notifications', name: 'Notifications', icon: <FaBell /> },
         { path: '/analyze-products', name: 'Analyse produits', icon: <FaBoxes /> },
         { path: '/analyze-clients', name: 'Analyse clients', icon: <FaUsers /> },
     ];
 
-    // Menu pour LIVREUR
+    // Menu pour LIVREUR - CORRIGÉ
     const deliveryMenu = [
         { path: '/delivery-dashboard', name: 'Dashboard', icon: <FaTachometerAlt /> },
-        { path: '/delivery-dashboard', name: 'Mes livraisons', icon: <FaTruck /> },
-        { path: '/delivery-dashboard', name: 'Historique', icon: <FaHistory /> },
+        { path: '/deliveries', name: 'Mes livraisons', icon: <FaTruck /> },
+        { path: '/order-tracking', name: 'Historique', icon: <FaHistory /> },
         { path: '/profile', name: 'Mon profil', icon: <FaUserCheck /> },
     ];
 
@@ -51,9 +52,7 @@ function Sidebar() {
         menuItems = clientMenu;
     }
 
-    const isActive = (path) => {
-        return location.pathname === path;
-    };
+    const isActive = (path) => location.pathname === path;
 
     return (
         <div className="sidebar" style={{
@@ -61,7 +60,8 @@ function Sidebar() {
             borderRadius: '16px',
             padding: '1rem 0',
             boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-            height: 'fit-content'
+            height: 'fit-content',
+            width: '100%'
         }}>
             <div style={{
                 padding: '0 1rem 0.75rem 1rem',
@@ -86,19 +86,19 @@ function Sidebar() {
                 <Link
                     key={item.path}
                     to={item.path}
-                    className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        padding: '0.75rem 1.25rem',
+                        padding: '0.65rem 1.25rem',
                         margin: '0 0.5rem',
                         borderRadius: '10px',
-                        color: isActive(item.path) ? 'white' : '#6c757d',
+                        color: isActive(item.path) ? '#ffffff' : '#495057',
                         backgroundColor: isActive(item.path) ? '#dc3545' : 'transparent',
                         textDecoration: 'none',
                         transition: 'all 0.2s ease',
                         gap: '12px',
-                        fontSize: '0.9rem'
+                        fontSize: '0.9rem',
+                        fontWeight: isActive(item.path) ? '600' : '400'
                     }}
                     onMouseEnter={(e) => {
                         if (!isActive(item.path)) {
@@ -109,11 +109,17 @@ function Sidebar() {
                     onMouseLeave={(e) => {
                         if (!isActive(item.path)) {
                             e.currentTarget.style.backgroundColor = 'transparent';
-                            e.currentTarget.style.color = '#6c757d';
+                            e.currentTarget.style.color = '#495057';
                         }
                     }}
                 >
-                    <span style={{ fontSize: '1.1rem', minWidth: '20px' }}>{item.icon}</span>
+                    <span style={{ 
+                        fontSize: '1.1rem', 
+                        minWidth: '20px',
+                        color: isActive(item.path) ? '#ffffff' : '#6c757d'
+                    }}>
+                        {item.icon}
+                    </span>
                     <span>{item.name}</span>
                 </Link>
             ))}

@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaTruck, FaCheckCircle, FaClock, FaEye, FaBox, FaTimes } from 'react-icons/fa';
+import { FaTruck, FaCheckCircle, FaMapMarkerAlt } from 'react-icons/fa';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import ClientLayout from '../components/ClientLayout';
 import api from '../api/axios';
+
+// Correction des icônes par défaut de Leaflet avec Webpack/React
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 function OrderTrackingList() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedOrder, setSelectedOrder] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -17,6 +29,10 @@ function OrderTrackingList() {
         try {
             const response = await api.get('/shop/client-orders/');
             setOrders(response.data);
+            const trackable = response.data.filter(o => o.status !== 'cancelled' && o.status !== 'pending');
+            if (trackable.length > 0) {
+                setSelectedOrder(trackable[0]);
+            }
         } catch (error) {
             console.error('Erreur:', error);
         } finally {
@@ -26,18 +42,6 @@ function OrderTrackingList() {
 
     const handleTracking = (orderId) => {
         navigate(`/tracking/${orderId}`);
-    };
-
-    const getStatusInfo = (status) => {
-        const map = {
-            'pending': { label: 'En attente', color: '#ffc107', icon: <FaClock /> },
-            'confirmed': { label: 'Confirmée', color: '#17a2b8', icon: <FaCheckCircle /> },
-            'preparing': { label: 'En préparation', color: '#007bff', icon: <FaBox /> },
-            'shipped': { label: 'Expédiée', color: '#6f42c1', icon: <FaTruck /> },
-            'delivered': { label: 'Livrée', color: '#28a745', icon: <FaCheckCircle /> },
-            'cancelled': { label: 'Annulée', color: '#dc3545', icon: <FaTimes /> }
-        };
-        return map[status] || { label: status, color: '#6c757d', icon: <FaClock /> };
     };
 
     if (loading) {
@@ -53,6 +57,10 @@ function OrderTrackingList() {
     }
 
     const trackableOrders = orders.filter(o => o.status !== 'cancelled');
+    const defaultPosition = [4.0511, 9.7679]; // Douala coordinates example
+    const orderPosition = selectedOrder?.latitude && selectedOrder?.longitude 
+        ? [selectedOrder.latitude, selectedOrder.longitude] 
+        : defaultPosition;
 
     return (
         <ClientLayout title="Suivi des commandes" icon={<FaTruck />}>
@@ -63,256 +71,101 @@ function OrderTrackingList() {
                     <p className="text-white-50">Vous n'avez pas encore de commandes à suivre.</p>
                 </div>
             ) : (
-                <div className="orders-grid">
-                    {trackableOrders.map(order => {
-                        const status = getStatusInfo(order.status);
-                        const canTrack = order.status !== 'pending';
-                        
-                        return (
-                            <div key={order.id} className="order-card">
-                                {/* En-tête avec ID et statut */}
-                                <div className="order-card-header">
-                                    <span className="order-id">Commande #{order.id}</span>
-                                    <span className="order-status" style={{ backgroundColor: status.color }}>
-                                        {status.icon} {status.label}
-                                    </span>
-                                </div>
-
-                                {/* Corps de la carte */}
-                                <div className="order-card-body">
-                                    <div className="order-info">
-                                        <div className="order-date">
-                                            <span className="label">📅 Date</span>
-                                            <span className="value">
-                                                {new Date(order.created_at).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                        <div className="order-total">
-                                            <span className="label">💰 Total</span>
-                                            <span className="value" style={{ color: '#dc3545', fontWeight: '700' }}>
-                                                {parseFloat(order.total).toLocaleString()} CFA
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Articles (si disponibles) */}
-                                    {order.items && order.items.length > 0 && (
-                                        <div className="order-items">
-                                            <span className="label">📦 Articles</span>
-                                            <div className="items-list">
-                                                {order.items.slice(0, 3).map((item, idx) => (
-                                                    <span key={idx} className="item-tag">
-                                                        {item.product_name || item.product?.name || 'Produit'} 
-                                                        x{item.quantity || 1}
-                                                    </span>
-                                                ))}
-                                                {order.items.length > 3 && (
-                                                    <span className="item-tag more">
-                                                        +{order.items.length - 3} autres
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Client */}
-                                    <div className="order-client">
-                                        <span className="label">👤 Client</span>
-                                        <span className="value">{order.customer_name || 'Client'}</span>
-                                    </div>
-                                </div>
-
-                                {/* Pied de carte avec bouton Suivre */}
-                                <div className="order-card-footer">
-                                    {canTrack ? (
-                                        <button 
-                                            className="btn-track"
-                                            onClick={() => handleTracking(order.id)}
-                                            title="Suivre la commande"
-                                        >
-                                            <FaEye className="btn-icon" />
-                                            Suivre
-                                        </button>
-                                    ) : (
-                                        <span className="btn-disabled">
-                                            <FaClock className="btn-icon" />
-                                            En attente
-                                        </span>
-                                    )}
+                <div className="row">
+                    {/* Tableau des commandes */}
+                    <div className="col-lg-7 mb-4">
+                        <div className="client-card">
+                            <div className="card-header">
+                                <h5><FaTruck className="me-2" /> Commandes à suivre</h5>
+                            </div>
+                            <div className="card-body">
+                                <div className="table-responsive">
+                                    <table className="table-client">
+                                        <thead>
+                                            <tr>
+                                                <th>#Commande</th>
+                                                <th>Date</th>
+                                                <th>Total</th>
+                                                <th>Statut</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {trackableOrders.map(order => (
+                                                <tr 
+                                                    key={order.id} 
+                                                    onClick={() => setSelectedOrder(order)}
+                                                    style={{ cursor: 'pointer', background: selectedOrder?.id === order.id ? 'rgba(255,255,255,0.05)' : 'transparent' }}
+                                                >
+                                                    <td>#{order.id}</td>
+                                                    <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                                                    <td>{parseFloat(order.total).toLocaleString()} CFA</td>
+                                                    <td>
+                                                        <span className={`badge-client ${order.status}`}>
+                                                            {order.status === 'pending' && '⏳ En attente'}
+                                                            {order.status === 'confirmed' && '✅ Confirmée'}
+                                                            {order.status === 'preparing' && '📦 En préparation'}
+                                                            {order.status === 'shipped' && <><FaTruck className="me-1" /> Expédiée</>}
+                                                            {order.status === 'delivered' && <><FaCheckCircle className="me-1" /> Livrée</>}
+                                                            {order.status === 'cancelled' && '❌ Annulée'}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <button 
+                                                            className="btn btn-sm btn-primary"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleTracking(order.id);
+                                                            }}
+                                                            disabled={order.status === 'pending'}
+                                                        >
+                                                            <FaTruck className="me-1" /> 
+                                                            {order.status === 'pending' ? 'En attente...' : 'Suivre'}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                        );
-                    })}
+                        </div>
+                    </div>
+
+                    {/* Section Carte GPS en temps réel */}
+                    <div className="col-lg-5 mb-4">
+                        <div className="client-card h-100">
+                            <div className="card-header d-flex align-items-center">
+                                <h5><FaMapMarkerAlt className="me-2" /> Carte GPS {selectedOrder ? `(Commande #${selectedOrder.id})` : ''}</h5>
+                            </div>
+                            <div className="card-body p-0" style={{ minHeight: '350px', height: '100%', position: 'relative' }}>
+                                <MapContainer 
+                                    center={orderPosition} 
+                                    zoom={13} 
+                                    style={{ height: '100%', width: '100%', minHeight: '350px', borderRadius: '0 0 8px 8px' }}
+                                >
+                                    <TileLayer
+                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    />
+                                    <Marker position={orderPosition}>
+                                        <Popup>
+                                            {selectedOrder ? (
+                                                <div>
+                                                    <strong>Commande #{selectedOrder.id}</strong><br />
+                                                    Statut : {selectedOrder.status}
+                                                </div>
+                                            ) : (
+                                                'Position de la commande'
+                                            )}
+                                        </Popup>
+                                    </Marker>
+                                </MapContainer>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
-
-            {/* Styles CSS */}
-            <style>{`
-                .orders-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-                    gap: 1.5rem;
-                    padding: 0.5rem 0;
-                }
-
-                .order-card {
-                    background: white;
-                    border-radius: 16px;
-                    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-                    overflow: hidden;
-                    transition: all 0.3s ease;
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                .order-card:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-                }
-
-                .order-card-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 1rem 1.25rem;
-                    background: #f8f9fa;
-                    border-bottom: 1px solid #e9ecef;
-                }
-
-                .order-id {
-                    font-weight: 700;
-                    color: #1a2a4f;
-                    font-size: 1rem;
-                }
-
-                .order-status {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.4rem;
-                    padding: 0.25rem 0.75rem;
-                    border-radius: 20px;
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                    color: white;
-                }
-
-                .order-card-body {
-                    padding: 1.25rem;
-                    flex: 1;
-                }
-
-                .order-info {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 0.75rem;
-                    padding-bottom: 0.75rem;
-                    border-bottom: 1px solid #f1f3f5;
-                }
-
-                .order-date, .order-total {
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                .label {
-                    font-size: 0.7rem;
-                    color: #adb5bd;
-                    text-transform: uppercase;
-                    letter-spacing: 0.3px;
-                    font-weight: 600;
-                }
-
-                .value {
-                    font-size: 0.95rem;
-                    color: #1a2a4f;
-                    margin-top: 2px;
-                }
-
-                .order-items {
-                    margin-bottom: 0.75rem;
-                    padding-bottom: 0.75rem;
-                    border-bottom: 1px solid #f1f3f5;
-                }
-
-                .order-client {
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                .items-list {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 0.4rem;
-                    margin-top: 4px;
-                }
-
-                .item-tag {
-                    background: #f1f3f5;
-                    padding: 0.2rem 0.6rem;
-                    border-radius: 12px;
-                    font-size: 0.75rem;
-                    color: #495057;
-                }
-
-                .item-tag.more {
-                    background: #e9ecef;
-                    color: #6c757d;
-                }
-
-                .order-card-footer {
-                    padding: 0.75rem 1.25rem;
-                    background: #f8f9fa;
-                    border-top: 1px solid #e9ecef;
-                    display: flex;
-                    justify-content: flex-end;
-                }
-
-                .btn-track {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    padding: 0.5rem 1.25rem;
-                    border: none;
-                    border-radius: 25px;
-                    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
-                    color: white;
-                    font-weight: 600;
-                    font-size: 0.85rem;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                }
-
-                .btn-track:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 16px rgba(220, 53, 69, 0.35);
-                }
-
-                .btn-track .btn-icon {
-                    font-size: 1rem;
-                }
-
-                .btn-disabled {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    padding: 0.5rem 1.25rem;
-                    border-radius: 25px;
-                    background: #e9ecef;
-                    color: #adb5bd;
-                    font-weight: 600;
-                    font-size: 0.85rem;
-                }
-
-                .btn-disabled .btn-icon {
-                    font-size: 1rem;
-                }
-
-                @media (max-width: 768px) {
-                    .orders-grid {
-                        grid-template-columns: 1fr;
-                    }
-                }
-            `}</style>
         </ClientLayout>
     );
 }
