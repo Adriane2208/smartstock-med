@@ -1,4 +1,5 @@
-Django==6.0
+# Remplacer Django==6.0 par une version compatible avec Python 3.10
+Django==5.1.4
 djangorestframework
 djangorestframework-simplejwt
 django-cors-headers
