@@ -8,8 +8,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenRefreshView
 from apps.users.views import CustomTokenObtainPairView
+from django.views.generic import TemplateView
 
 urlpatterns = [
+    #Route pour le deploiement de react
+    path('', TemplateView.as_view(template_name='index.html')),
     # Interface d'administration Django
     path('admin/', admin.site.urls),
     
