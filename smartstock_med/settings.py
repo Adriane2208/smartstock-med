@@ -157,3 +157,38 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
     os.path.join(BASE_DIR, 'frontend', 'build', 'static'),
 ]
+
+# Configuration pour Railway
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    ".railway.app",  # ← AJOUTER POUR RAILWAY
+    "smartstock-med-production.up.railway.app",  # ← TON DOMAINE RAILWAY
+]
+
+# Base de données PostgreSQL pour Railway
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+
+# Utiliser les variables d'environnement pour les secrets
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-o!&r_+=68%4)vs_h1taps1rrbw5&xs89qt786tpcl7*^0%jj05')
+
+# Désactiver DEBUG en production
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+# Configuration CORS pour Railway
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://smartstock-med-production.up.railway.app",  # ← TON DOMAINE
+]
+
+# Stripe (utiliser les variables d'environnement)
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')

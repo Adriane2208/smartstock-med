@@ -1,1 +1,2 @@
-web: gunicorn smartstock_med.wsgi:application
+
+web: python manage.py migrate && python manage.py runserver 0.0.0.0:$PORT
