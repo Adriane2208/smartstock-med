@@ -1,52 +1,59 @@
+# apps/users/views.py
+# VERSION CORRIGÉE - IMPORTS NETTOYÉS
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework import status
+from rest_framework import status, exceptions
 from django.contrib.auth import get_user_model
 from .serializers import UserSerializer
 import json
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework import exceptions
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework import exceptions, serializers
-from django.contrib.auth import get_user_model
+
 User = get_user_model()
 
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Le champ attendu est 'email'
-        self.fields['email'] = serializers.CharField()
-        self.fields['password'] = serializers.CharField()
+# ============================================
+# SERIALIZER PERSONNALISÉ POUR LA CONNEXION
+# ============================================
 
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        email = attrs.get('email')
+        username_or_email = attrs.get('username')
         password = attrs.get('password')
         
-        print(f"🔐 Tentative de connexion avec email: {email}")
+        print(f"🔐 Tentative de connexion avec: {username_or_email}")
         
-        if not email or not password:
-            raise exceptions.AuthenticationFailed('Email et mot de passe requis')
+        # Si c'est un email, trouver l'utilisateur
+        if username_or_email and '@' in username_or_email:
+            try:
+                user = User.objects.get(email=username_or_email)
+                # Remplacer par le username pour l'authentification
+                attrs['username'] = user.username
+                print(f"✅ Utilisateur trouvé: {user.username}")
+            except User.DoesNotExist:
+                print(f"❌ Aucun utilisateur avec cet email: {username_or_email}")
+                raise exceptions.AuthenticationFailed('Email ou mot de passe incorrect')
+        else:
+            print(f"🔍 Recherche par username: {username_or_email}")
+            try:
+                user = User.objects.get(username=username_or_email)
+                print(f"✅ Utilisateur trouvé par username: {user.username}")
+            except User.DoesNotExist:
+                print(f"❌ Aucun utilisateur avec ce username: {username_or_email}")
+                raise exceptions.AuthenticationFailed('Email ou mot de passe incorrect')
         
-        try:
-            user = User.objects.get(email=email)
-            print(f"✅ Email trouvé: {user.username}")
-        except User.DoesNotExist:
-            print(f"❌ Email non trouvé: {email}")
-            raise exceptions.AuthenticationFailed('Email ou mot de passe incorrect')
-        
-        if not user.check_password(password):
-            print(f"❌ Mot de passe incorrect pour: {user.username}")
-            raise exceptions.AuthenticationFailed('Email ou mot de passe incorrect')
-        
-        attrs['username'] = user.username
         return super().validate(attrs)
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+
+# ============================================
+# VUES UTILISATEURS
+# ============================================
 
 class UserListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -60,6 +67,7 @@ class UserListView(APIView):
         users = User.objects.all().order_by('-date_joined')
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
+
 
 class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -88,7 +96,8 @@ class UserDetailView(APIView):
                 'last_login': user.last_login,
             })
         except User.DoesNotExist:
-            return Response({'error': 'Utilisateur non trouvé'}, status=404)
+            return Response({'error': 'Utilisateur non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]

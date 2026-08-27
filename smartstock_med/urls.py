@@ -37,7 +37,7 @@ urlpatterns = [
     # ========================================
     # FRONTEND (pages HTML) - UN SEUL INCLUDE
     # ========================================
-    path('', include('apps.core.urls')),  # ← UN SEUL, pas deux !
+    path('', include('apps.core.urls')), 
 ]
 
 # Servir les fichiers statiques en mode développement
