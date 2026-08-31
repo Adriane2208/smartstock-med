@@ -1,7 +1,13 @@
+// frontend/src/api/axios.js
+// VERSION CORRIGÉE
+
 import axios from 'axios';
 
+// Utiliser l'URL de Render ou local
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+
 const api = axios.create({
-    baseURL: 'http://localhost:8000/api',  // Vérifiez que le port est correct
+    baseURL: API_URL,
     timeout: 30000,
 });
 
@@ -23,7 +29,8 @@ api.interceptors.response.use(
             originalRequest._retry = true;
             try {
                 const refresh = localStorage.getItem('refresh_token');
-                const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+                // Utiliser API_URL pour le refresh aussi
+                const response = await axios.post(`${API_URL}/token/refresh/`, {
                     refresh: refresh
                 });
                 localStorage.setItem('access_token', response.data.access);
@@ -39,4 +46,4 @@ api.interceptors.response.use(
     }
 );
 
-export default api;
+export default api;  // ← UN SEUL export default
