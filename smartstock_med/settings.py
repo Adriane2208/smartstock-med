@@ -170,12 +170,20 @@ CORS_ALLOW_HEADERS = ['accept', 'accept-encoding', 'authorization', 'content-typ
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
 
-# ==================== MIGRATIONS AUTOMATIQUES (Render) ====================
-if os.environ.get('RENDER'):
-    print(" Exécution automatique des migrations...")
-    try:
-        from django.core.management import call_command
-        call_command('migrate', '--noinput')
-        print("Migrations exécutées avec succès")
-    except Exception as e:
-        print(f" Erreur lors des migrations: {e}")
+
+# Database - PostgreSQL pour Render, SQLite pour local
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }

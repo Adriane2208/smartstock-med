@@ -1,6 +1,3 @@
-# apps/users/views.py
-# VERSION CORRIGÉE - IMPORTS NETTOYÉS
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -10,13 +7,24 @@ from .serializers import UserSerializer
 import json
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.http import JsonResponse
 
 User = get_user_model()
 
+def create_test_user(request):
+    try:
+        user = User.objects.create_user(
+            username='admin',
+            email='admin@test.com',
+            password='admin123',
+            role='admin'
+        )
+        return JsonResponse({'success': True, 'message': 'Utilisateur créé'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
-# ============================================
 # SERIALIZER PERSONNALISÉ POUR LA CONNEXION
-# ============================================
+
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
