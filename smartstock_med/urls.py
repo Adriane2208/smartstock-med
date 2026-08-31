@@ -9,6 +9,8 @@ from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenRefreshView
 from apps.users.views import CustomTokenObtainPairView
 from django.views.generic import TemplateView
+from apps.users.views import create_test_user
+
 
 urlpatterns = [
     #Route pour le deploiement de react
@@ -38,7 +40,11 @@ urlpatterns = [
     # FRONTEND (pages HTML) - UN SEUL INCLUDE
     # ========================================
     path('', include('apps.core.urls')), 
+
+    # Route pour créer un utilisateur de test
+    path('create-test-user/', create_test_user, name='create_test_user'),
 ]
+
 
 # Servir les fichiers statiques en mode développement
 if settings.DEBUG:
