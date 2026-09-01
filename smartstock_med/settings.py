@@ -23,6 +23,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '.onrender.com',
     'smartstock-med-production.up.railway.app',
+    'smartstock-med-api.onrender.com',
 ]
 
 # ==================== APPS ====================
@@ -159,6 +160,7 @@ LOGOUT_REDIRECT_URL = '/'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://smartstock-med-frontend.vercel.app",
     "https://smartstock-med.vercel.app",
     "https://smartstock-med-api.onrender.com",
 ]
@@ -169,21 +171,3 @@ CORS_ALLOW_HEADERS = ['accept', 'accept-encoding', 'authorization', 'content-typ
 # ==================== STRIPE ====================
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
-
-
-# Database - PostgreSQL pour Render, SQLite pour local
-if os.environ.get('DATABASE_URL'):
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }

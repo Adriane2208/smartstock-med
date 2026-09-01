@@ -17,16 +17,16 @@ function Login() {
         setError('');
         setLoading(true);
 
-        console.log('📧 Tentative de connexion avec email:', email);
+        console.log(' Tentative de connexion avec email:', email);
 
         try {
-            // ✅ Envoyer 'email' au lieu de 'username'
+            //  Envoyer 'email' au lieu de 'username'
             const response = await axios.post('http://localhost:8000/api/token/', {
                 email: email,
                 password: password
             });
 
-            console.log('✅ Réponse token:', response.data);
+            console.log(' Réponse token:', response.data);
 
             if (response.data.access) {
                 localStorage.setItem('access_token', response.data.access);
